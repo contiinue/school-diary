@@ -1,0 +1,3 @@
+{% for i in user %}
+<h2>Имя: {{i.name}}, Класс: {{ i.learned_class }} <a href="{{i.get_absolute_url}}">Ученик</a></h2>
+{%endfor%}
