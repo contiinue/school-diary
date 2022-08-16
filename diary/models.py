@@ -1,19 +1,24 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User, AbstractUser
+
+
+class MyBaseUserModel(AbstractUser):
+    pass
 
 
 # Ученики
 class Students(models.Model):
-    name = models.CharField(max_length=100)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.IntegerField()
     learned_class = models.IntegerField()
     slug = models.SlugField(max_length=100, unique=True, null=True)
 
     def get_absolute_url(self):
-        return reverse('student', kwargs={'stud': self.slug})
+        return reverse('student', kwargs={'stud': self.user.username})
 
     def __str__(self):
-        return self.name
+        return self.user.username
 
 
 # книги
@@ -32,4 +37,4 @@ class Evaluation(models.Model):
     date = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.name_user.name, self.item.book_name, self.evaluation}'
+        return f'{self.name_user.user.username, self.item.book_name, self.evaluation}'

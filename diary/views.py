@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 
@@ -21,11 +22,11 @@ def student(request, stud):
     return render(request, 'diary/student.html', contex)
 
 
-def RegisterUser():
-    pass
+def register(request):
+    return HttpResponse('register')
 
 
-def login():
-    pass
+def login(request):
+    return render(request, 'diary/base.html')
 
 # Create your views here.
