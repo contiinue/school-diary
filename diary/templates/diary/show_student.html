@@ -3,9 +3,12 @@
 
 
 {% block content %}
-<h1>Наши сдуденты</h1>
+<h1>Наши студенты</h1>
 {% for i in user %}
-<h2>Имя: {{i.user.username}}, Класс: {{ i.learned_class }} <a href="{{i.get_absolute_url}}">Ученик</a></h2>
+    {% if i.is_superuser %}
+    {% else %}
+        <h2>Имя: {{i.username}}, Класс: {{ i.learned_class }} <a href="{{i.get_absolute_url}}">Ученик</a></h2>
+    {% endif %}
 {%endfor%}
 
 <a href="{% url 'login' %}">Авторизация</a>

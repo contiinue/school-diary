@@ -1,5 +1,15 @@
 {% extends 'diary/base.html' %}
+{% load helper %}
+
+{% block title %}Студент: {{ student.username}}{% endblock %}
 
 {% block content %}
-<h1> студент: {{ student }} </h1>
+<div class="container">
+  <div class="homework">
+    <a href="{% url 'homework' stud=student.username %}">homework</a>
+  </div>
+  <div class="container_name"><h1>Студент: {{student.username}} </h1></div>
+    {% get_table student.username %}
+  </table>
+</div>
 {% endblock %}

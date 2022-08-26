@@ -1,0 +1,9 @@
+{% extends 'diary/base.html' %}
+
+
+{% block content %}
+
+{% for i in model %}
+<a href="{{i.get_absolute_url}}"> {{i.student_class}} перейти к классу</a>
+{% endfor %}
+{% endblock %}
