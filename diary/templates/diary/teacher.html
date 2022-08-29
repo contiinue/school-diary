@@ -3,7 +3,17 @@
 
 {% block content %}
 
-{% for i in model %}
-<a href="{{i.get_absolute_url}}"> {{i.student_class}} перейти к классу</a>
-{% endfor %}
+<div class="container-lg">
+	{% for i in model %}
+	<a href="{{i.get_absolute_url}}"> {{i.all_class}} перейти к классу</a>
+	{% endfor %}
+
+	<h1>Cоздать Домашнее задание</h1>
+	<form method="POST">
+		{% csrf_token %}
+		{{ form_homework }}
+		<button class="btn btn-primary" type="submit">создать</button>
+	</form>
+</div>
+
 {% endblock %}

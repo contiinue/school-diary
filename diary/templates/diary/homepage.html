@@ -1,0 +1,53 @@
+{% extends 'diary/base.html' %}
+{% load helper %}
+
+
+{% block content %}
+<div class="container-lg">
+    <section>
+        <div class="auth-user text-end">
+            {% if request.user.is_authenticated %}
+                {% if request.user.is_student %}
+                    <p><a href="{% url 'student' request.user.username %}">Профиль</a></p>
+                {% else %}
+                    <p><a href="{% url 'teacher' %}">Консоль Учителя</a></p>
+                {% endif %}
+            {% else %}
+                <p class="f"><a href="{% url 'login' %}">Авторизация</a> |  <a href="{% url 'register' %}">Регистрация</a></p>
+            {% endif %}
+        </div>
+
+
+        <div class="text-center">
+            <h1 class="h1">Электронный дневник</h1>
+            <p class="h3">сервис, позволяющий участникам образовательного процесса получать информацию об учебных расписаниях, текущих и итоговых отметках и домашних заданиях в режиме онлайн. Также электронный школьный документооборот должен обеспечить снижение административной нагрузки на общеобразовательные учреждения</p>
+        </div>
+        <div class="student-images  text-center">
+            <img class="rounded" src="../../static/diary/images/uchitel-obsuzhdaet-roditeley-na-uroke-v-klasse (1).jpg" alt="">
+            <img class="rounded" src="../../static/diary/images/Shkolnik (1).jpg" alt="">
+            <img class="rounded-pill" src="../../static/diary/images/depositphotos_34737759_xl-2015-1-scaled-1 (2).jpg" alt="">
+        </div>
+    </section>
+    <section>
+        <div class="text-center">
+            <p class="h4">В рамках распоряжения Правительства Российской Федерации от 17 декабря 2009 года № 1993-р[3] утверждё
+                н сводный перечень первоочередных государственных и муниципальных услуг, предоставляемых органами исполнительной власти субъектов 
+                Российской Федерации и органами местного самоуправления в электронном виде, а также услуг, предоставляемых в электронном виде учр
+                еждениями субъектов Российской Федерации и муниципальными учреждениями согласно приложению № 1 этого распоряжения.</p>
+        </div>
+
+        <div class="auth-user text-center">
+            {% if request.user.is_authenticated %}
+                <p class="h2">Вы уже Авторизованны </p>
+                {% if request.user.is_student %}
+                    <a href="{% url 'student' request.user.username %}">Профиль</a>
+                {% else %}
+                    <a href="{% url 'teacher' %}">Консоль Учителя</a>
+                {% endif %}
+            {% else %}
+                <p class="f"><a href="{% url 'login' %}">Авторизация</a> |  <a href="{% url 'register' %}">Регистрация</a></p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+{% endblock %}

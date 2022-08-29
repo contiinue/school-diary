@@ -1,16 +1,16 @@
 from django.contrib.auth.forms import AuthenticationForm
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.views.generic import ListView
 from django.contrib import messages
-from .forms import NewUserForm
+from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm
 from .models import *
 
 
 class HomePage(ListView):
     model = MyUser
-    template_name = 'diary/show_student.html'
+    template_name = 'diary/homepage.html'
     context_object_name = 'user'
 
 
@@ -75,15 +75,37 @@ def homework(request, stud):
 
 
 def teacher(request):
-    model = HomeWorkModel.objects.all()
+    model = SchoolClass.objects.all()
+
+    if request.method == 'POST':
+        form = NewHomeWorkForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/login/')
+
+    form = NewHomeWorkForm()
     context = {
-        'model': model
+        'model': model,
+        'form_homework': form,
     }
-    print(model)
     return render(request, 'diary/teacher.html', context=context)
 
 
-def stud_class(cla):
-    return HttpResponse(f'{cla}')
+def learned_class(request, cla):
+    model = MyUser.objects.filter(learned_class=cla)
+
+    if request.method == 'POST':
+        print(request.POST)
+        form = SetEvaluationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+
+    form = SetEvaluationForm()
+    context = {
+        'model': model,
+        'form': form
+    }
+    return render(request, 'diary/learned_class.html', context=context)
 
 # Create your views here.

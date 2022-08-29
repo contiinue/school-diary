@@ -37,39 +37,10 @@ class MyUser(AbstractUser):
 
 
 class HomeWorkModel(models.Model):
-    one = 1
-    two = 2
-    three = 3
-    four = 4
-    five = 5
-    six = 6
-    seven = 7
-    eight = 8
-    nine = 9
-    ten = 10
-    eleven = 11
-
-    YEAR_IN_SCHOOL_CHOICES = [
-        (one, 'Первый'),
-        (two, 'Второй'),
-        (three, 'Третий'),
-        (four, 'Четвертый'),
-        (five, 'Пятый'),
-        (six, 'Шестой'),
-        (seven, 'Седьмой'),
-        (eight, 'Восьмой'),
-        (nine, 'Девятый'),
-        (ten, 'Десятый'),
-        (eleven, 'Одиннадцатый')
-    ]
-
     item = models.ForeignKey('Books', on_delete=models.CASCADE)
-    student_class = models.IntegerField(choices=YEAR_IN_SCHOOL_CHOICES)
+    student_class = models.ForeignKey('SchoolClass', on_delete=models.CASCADE)
     home_work = models.CharField(max_length=400)
     date_end_of_homework = models.DateField(null=True)
-
-    def get_absolute_url(self):
-        return reverse('student-class', kwargs={'cla': self.student_class})
 
     def __str__(self):
         return self.item.book_name
@@ -104,6 +75,12 @@ class SchoolClass(models.Model):
 
     all_class = models.IntegerField(choices=YEAR_IN_SCHOOL_CHOICES)
 
+    def get_absolute_url(self):
+        return reverse('student-class', kwargs={'cla': self.all_class})
+
+    def __str__(self):
+        return f'{self.all_class}'
+
 
 class Books(models.Model):
     book_name = models.CharField(max_length=63)
@@ -113,13 +90,17 @@ class Books(models.Model):
 
 
 class Evaluation(models.Model):
-    student = models.ForeignKey(MyUser, on_delete=models.CASCADE)
+    eval = [
+        (1, 1),
+        (2, 2),
+        (3, 3),
+        (4, 4),
+        (5, 5),
+    ]
+    student = models.ForeignKey(MyUser, blank=True, on_delete=models.CASCADE)
     item = models.ForeignKey(Books, on_delete=models.CASCADE)
-    evaluation = models.IntegerField()
+    evaluation = models.IntegerField(choices=eval)
     date = models.DateField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['date']
 
     def __str__(self):
         return f'{self.student.username, self.item.book_name, self.evaluation}'
