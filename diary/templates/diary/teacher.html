@@ -4,16 +4,37 @@
 {% block content %}
 
 <div class="container-lg">
-	{% for i in model %}
-	<a href="{{i.get_absolute_url}}"> {{i.all_class}} перейти к классу</a>
-	{% endfor %}
+	<section>
+		<div class="text-center">
+			<h1>Консоль учителя</h1>
+		</div>
+	</section>
 
-	<h1>Cоздать Домашнее задание</h1>
-	<form method="POST">
-		{% csrf_token %}
-		{{ form_homework }}
-		<button class="btn btn-primary" type="submit">создать</button>
-	</form>
+	<section>
+		<div class="d-flex flex-row">
+			<div class="form-container w-50 ">
+				<p class="h1">Создать домашнее задание</p>
+				<form method="POST">
+					{% csrf_token %}
+
+					{% for i in form_homework %}
+					<div class="form-group row">
+						<p><label class="col-sm-2 col-form-label w-100 " for="gdfgdf {{i.id_for_label}}">{{i.label}} </label> {{i}} </p>
+						<div class="valid-feedback">{{i.errors}}</div>
+					</div>
+					{% endfor %}
+					<button type="submit" class="btn btn-primary">Создать</button>
+				</form>
+			</div>
+
+			<div class="student-classes text-center top-0 p-1">
+				<p class="h1 ">Перейти к классу</p>
+				{% for i in model %}
+					<a href="{{ i.get_absolute_url }}" class="btn btn-primary btn-lg active" role="button" aria-pressed="true">{{ i.number_class }}  {{ i.name_class }}</a>
+				{% endfor %}
+			</div>
+		</div>
+	</section>
 </div>
 
 {% endblock %}

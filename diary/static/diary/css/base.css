@@ -3,3 +3,14 @@ section {
     padding-top: 30px;
     padding-bottom: 30px;
 }
+
+
+.logo-image {
+    max-width: 55px;
+    height: auto;
+}
+
+
+.logo-text {
+    text-decoration: none;
+}

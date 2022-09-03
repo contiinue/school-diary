@@ -9,7 +9,7 @@ register = template.Library()
 c = calendar.Calendar()
 
 
-@register.inclusion_tag('diary/get_table.html')
+@register.simple_tag()
 def get_table(value):
     evaluation_and_date = defaultdict(list)
     book = Books.objects.all()
@@ -32,8 +32,27 @@ def get_table(value):
 
 
 @register.simple_tag()
+def get_eval(book, student):
+    evals = []
+    evaluation = book.book.evaluation_set.filter(student__username=student)
+    for i in evaluation:
+        evals.append(i.evaluation)
+    return evals
+
+
+@register.simple_tag()
 def get_now_date():
     return now_date.today()
+
+
+@register.filter()
+def middle_eval(evaluations):
+    try:
+        result = sum(evaluations) / len(evaluations)
+    except ZeroDivisionError:
+        return 0
+
+    return round(result, 2)
 
 
 

@@ -6,8 +6,9 @@ urlpatterns = [
     path('', HomePage.as_view(), name='home'),
     path('student/<slug:stud>', student, name='student'),
     path('register/', register, name='register'),
-    path('login/', loginuser, name='login'),
+    path('login/', login_user, name='login'),
+    path('logout', logout_user, name='logout'),
     path('homework/<slug:stud>', homework, name='homework'),
     path('teacher', teacher, name='teacher'),
-    path('student-class/<slug:cla>', learned_class, name='student-class')
+    path('student-class/<int:class_number>/<slug:slug_name>/', learned_class, name='student-class')
 ]

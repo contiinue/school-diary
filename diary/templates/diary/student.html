@@ -4,12 +4,42 @@
 {% block title %}Студент: {{ student.username}}{% endblock %}
 
 {% block content %}
-<div class="container">
-  <div class="homework">
-    <a href="{% url 'homework' stud=student.username %}">homework</a>
+<div class="container-lg">
+
+  <div class="homework text-end">
+    <a class="btn btn-outline-primary" role="button" href="{% url 'homework' stud=student.username %}">Домашнее Задание</a>
   </div>
-  <div class="container_name"><h1>Студент: {{student.username}} </h1></div>
-    {% get_table student.username %}
+
+  {% if student.is_student == 'Учитель' %}
+    <div class="user-name-for-teacher">
+      <h1>Студент: {{student.username}}</h1>
+    </div>
+  {% endif %}
+
+  <div class="student-eval">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Оценки</th>
+          <th scope="col" >Средний балл</th>
+        </tr>
+      </thead>
+      </thead>
+        {% for i in books %}
+          {% get_eval i student.username as evals %}
+          <tr>
+            <td class="row">{{i.book.book_name}}</td>
+            <td>{{ evals |join:', ' }}</td>
+            <td>{{ evals | middle_eval }}</td>
+          </tr>
+        {% endfor %}
+      </thead>
+    </table>
+  </div>
+</div>
+  
+
   </table>
 </div>
 {% endblock %}

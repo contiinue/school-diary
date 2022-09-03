@@ -4,29 +4,33 @@
 
 {% block content %}
 {% get_now_date as now_date %}
-
-<h1>Homework page</h1>
-<h2>home work for {{user.username}}, class {{user.learned_class}}</h2>
-<table>
-    <tr>
-        <th>Предмет</th>
-        <th>Домашнее задание</th>
-        <th>Задано до</th>
-    </tr>
-    {% for i in homework %}
-        {% if i.date_end_of_homework > now_date %}
+<div class="container-lg">
+    <div class="homework text-end">
+        <a class="btn btn-outline-primary" role="button" href="{% url 'student' request.user.username %}">Оценки</a>
+    </div>     
+    <section>
+        <table class="table">
             <tr>
-                <td>
-                    {{i.item}}
-                </td>
-                <td>
-                    {{i.home_work}}
-                </td>
-                <td>
-                    {{ i.date_end_of_homework }}
-                </td>
-        {% else %}
-        {% endif %}
-    {% endfor %}
-</table>
+                <th scope="col">Предмет</th>
+                <th scope="col">Домашнее задание</th>
+                <th scope="col">Задано до</th>
+            </tr>
+            {% for i in homework %}
+                {% if i.date_end_of_homework > now_date %}
+                    <tr>
+                        <td>
+                            {{i.item}}
+                        </td>
+                        <td>
+                            {{i.home_work}}
+                        </td>
+                        <td>
+                            {{ i.date_end_of_homework }}
+                        </td>
+                {% else %}
+                {% endif %}
+            {% endfor %}
+        </table>
+    </section>
+</div>
 {% endblock %}

@@ -1,11 +1,13 @@
+from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.views.generic import ListView
 from django.contrib import messages
 from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm
 from .models import *
+from .utils import request_teacher, request_student
 
 
 class HomePage(ListView):
@@ -14,10 +16,14 @@ class HomePage(ListView):
     context_object_name = 'user'
 
 
+@login_required
+@request_student
 def student(request, stud):
-    model = MyUser.objects.filter(username=stud)
+    user = MyUser.objects.filter(username=stud)
+    base_book = BookWithClass.objects.filter(student_class__number_class=user[0].learned_class.number_class)
     contex = {
-        'student': model[0]
+        'student': user[0],
+        'books': base_book
     }
     return render(request, 'diary/student.html', contex)
 
@@ -37,7 +43,7 @@ def register(request):
     return render(request=request, template_name="diary/register.html", context={"register_form": form})
 
 
-def loginuser(request):
+def login_user(request):
     if request.method == "POST":
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -48,7 +54,7 @@ def loginuser(request):
                 login(request, user)
                 messages.info(request, f"You are now logged in as {username}.")
                 if user.is_student:
-                    return redirect(f'student', stud=user.username)
+                    return redirect('student', stud=user.username)
                 return redirect('teacher')
             else:
                 messages.error(request, "Invalid username or password.")
@@ -59,6 +65,13 @@ def loginuser(request):
     return render(request, 'diary/login.html', context={"login_form": form})
 
 
+def logout_user(request):
+    logout(request)
+    return redirect('home')
+
+
+@login_required
+@request_student
 def homework(request, stud):
     model = MyUser.objects.filter(username=stud)
     h_work = HomeWorkModel.objects.filter(student_class=model[0].learned_class)
@@ -67,13 +80,11 @@ def homework(request, stud):
         'homework': h_work,
         'requests': request
     }
-    # проверка на аундифекацию юзера
-    # if request.user.username != model[0].username:
-    #     return redirect('login')
-
     return render(request, 'diary/homework.html', context=context)
 
 
+@login_required
+@request_teacher
 def teacher(request):
     model = SchoolClass.objects.all()
 
@@ -91,15 +102,16 @@ def teacher(request):
     return render(request, 'diary/teacher.html', context=context)
 
 
-def learned_class(request, cla):
-    model = MyUser.objects.filter(learned_class=cla)
+@login_required
+@request_teacher
+def learned_class(request, class_number, slug_name):
+    model = MyUser.objects.filter(learned_class__slug=slug_name, learned_class__number_class=class_number)
 
     if request.method == 'POST':
         print(request.POST)
         form = SetEvaluationForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('login')
 
     form = SetEvaluationForm()
     context = {
