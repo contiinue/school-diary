@@ -1,0 +1,34 @@
+{% extends "diary/base.html" %}
+
+
+{% block content %}
+
+<div class="container-lg">
+    <table class="table">
+        <tr>
+            <th>#</th>
+            <th>Предмет</th>
+            <th>Оценка</th>
+        </tr>
+
+        {% for i in model %}
+        <tr>
+           
+            <form method="POST">
+                <td><a href="{{ i.get_absolute_url }}">{{ i.last_name }} {{ i.first_name }}</a></td>
+                {% csrf_token %}
+                <td class="row">{{form.item}}</td>
+                <td>{{form.evaluation}}</td>
+
+                <td>
+                    <input type="hidden" name="student" value="{{i.id}}">
+                    <button class="btn btn-primary" type="submit">создать</button>
+                </td>
+            </form>
+            
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

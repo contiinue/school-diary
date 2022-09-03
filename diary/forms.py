@@ -67,3 +67,4 @@ class SetEvaluationForm(forms.ModelForm):
     class Meta:
         model = Evaluation
         fields = ['student', 'item', 'evaluation']
+

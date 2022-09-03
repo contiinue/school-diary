@@ -10,5 +10,5 @@ urlpatterns = [
     path('logout', logout_user, name='logout'),
     path('homework/<slug:stud>', homework, name='homework'),
     path('teacher', teacher, name='teacher'),
-    path('student-class/<int:class_number>/<slug:slug_name>/', learned_class, name='student-class')
+    path('student-class/<int:class_number>/<slug:slug_name>/', student_class, name='student-class')
 ]
