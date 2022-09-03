@@ -10,9 +10,9 @@
     <a class="btn btn-outline-primary" role="button" href="{% url 'homework' stud=student.username %}">Домашнее Задание</a>
   </div>
 
-  {% if student.is_student == 'Учитель' %}
+  {% if student.is_student == 'teacher' %}
     <div class="user-name-for-teacher">
-      <h1>Студент: {{student.username}}</h1>
+      <h1>Студент: {{student.last_name}} {{ student.first_name }}</h1>
     </div>
   {% endif %}
 

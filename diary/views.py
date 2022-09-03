@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, logout
 from django.views.generic import ListView
 from django.contrib import messages
@@ -16,13 +16,14 @@ class HomePage(ListView):
     context_object_name = 'user'
 
 
-@login_required
+@login_required(login_url='login')
 @request_student
 def student(request, stud):
-    user = MyUser.objects.filter(username=stud)
-    base_book = BookWithClass.objects.filter(student_class__number_class=user[0].learned_class.number_class)
+    user = get_object_or_404(MyUser, username=stud)
+    base_book = BookWithClass.objects.filter(student_class__number_class=user.learned_class.number_class)
+
     contex = {
-        'student': user[0],
+        'student': user,
         'books': base_book
     }
     return render(request, 'diary/student.html', contex)
@@ -36,8 +37,7 @@ def register(request):
             login(request, user)
             messages.success(request, "Registration successful.")
             if user.is_student:
-                return redirect(f"student/{user.username}")
-            return redirect('fdgdgfd/')
+                return redirect('student', stud=user.username)
         messages.error(request, "Unsuccessful registration. Invalid information.")
     form = NewUserForm()
     return render(request=request, template_name="diary/register.html", context={"register_form": form})
@@ -50,6 +50,7 @@ def login_user(request):
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password')
             user = authenticate(username=username, password=password)
+            print(user)
             if user is not None:
                 login(request, user)
                 messages.info(request, f"You are now logged in as {username}.")
@@ -70,7 +71,7 @@ def logout_user(request):
     return redirect('home')
 
 
-@login_required
+@login_required(login_url='login')
 @request_student
 def homework(request, stud):
     model = MyUser.objects.filter(username=stud)
@@ -83,7 +84,7 @@ def homework(request, stud):
     return render(request, 'diary/homework.html', context=context)
 
 
-@login_required
+@login_required(login_url='login')
 @request_teacher
 def teacher(request):
     model = SchoolClass.objects.all()
@@ -102,7 +103,7 @@ def teacher(request):
     return render(request, 'diary/teacher.html', context=context)
 
 
-@login_required
+@login_required(login_url='login')
 @request_teacher
 def learned_class(request, class_number, slug_name):
     model = MyUser.objects.filter(learned_class__slug=slug_name, learned_class__number_class=class_number)
