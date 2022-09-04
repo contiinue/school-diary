@@ -1,0 +1,29 @@
+version: '3.9'
+
+services:
+  postgresql:
+    image: postgres
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: postgres1234
+      PGDATA: "/var/lib/postgresql/data/pgdata"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+
+  web:
+    build:
+      dockerfile: ./docker/Dockerfile
+    volumes:
+      - .:/app
+    env_file:
+      - "docker/envfile.env"
+    ports:
+      - '8000:8000'
+    depends_on:
+      - postgresql
+
+            
