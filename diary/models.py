@@ -1,5 +1,3 @@
-from django.contrib.auth.base_user import AbstractBaseUser
-
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
@@ -32,7 +30,7 @@ class MyUser(AbstractUser):
     REQUIRED_FIELDS = ['age', 'is_student']
 
     def get_absolute_url(self):
-        return reverse('student', kwargs={'stud': self.username})
+        return reverse('student', kwargs={'username': self.username})
 
 
 class HomeWorkModel(models.Model):

@@ -17,7 +17,7 @@
 				<form method="POST">
 					{% csrf_token %}
 
-					{% for i in form_homework %}
+					{% for i in form %}
 					<div class="form-group row">
 						<p><label class="col-sm-2 col-form-label w-100 " for="gdfgdf {{i.id_for_label}}">{{i.label}} </label> {{i}} </p>
 						<div class="valid-feedback">{{i.errors}}</div>

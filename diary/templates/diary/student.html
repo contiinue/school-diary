@@ -7,12 +7,13 @@
 <div class="container-lg">
 
   <div class="homework text-end">
-    <a class="btn btn-outline-primary" role="button" href="{% url 'homework' stud=student.username %}">Домашнее Задание</a>
+    <a class="btn btn-outline-primary" role="button" href="{% url 'homework' username=student.username %}">Домашнее Задание</a>
   </div>
 
-  {% if student.is_student == 'teacher' %}
+  {% if request.user.is_student == 'teacher' %}
     <div class="user-name-for-teacher">
-      <h1>Студент: {{student.last_name}} {{ student.first_name }}</h1>
+      <h1>Студент: {{student.last_name}} {{ student.first_name }}, 
+                   {{ student.learned_class.number_class }} {{ student.learned_class.name_class }} </h1>
     </div>
   {% endif %}
 

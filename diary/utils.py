@@ -15,7 +15,7 @@ def request_student(view):
     @wraps(view)
     def _view(request, *args, **kwargs):
         print(request.user.is_staff)
-        if not (request.user.username == kwargs['stud'] or
+        if not (request.user.username == kwargs['username'] or
                 request.user.is_student == 'teacher'):
             raise PermissionDenied
         return view(request, *args, **kwargs)

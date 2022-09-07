@@ -80,10 +80,10 @@ WSGI_APPLICATION = 'schooldiary.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'diary',
         'USER': 'postgres',
-        'PASSWORD': 'postgres1234',
-        'HOST': 'postgresql',
+        'PASSWORD': '2407',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
@@ -125,6 +125,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+# MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "images")
+# MEDIA_URL = "/images/"
 
 
 # Default primary key field type
