@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 
 
 def request_teacher(view):
+    """ decorator for teacher: if user is not a teacher raise error """
     @wraps(view)
     def _view(request, *args, **kwargs):
         if not request.user.is_student == 'teacher':
@@ -12,6 +13,8 @@ def request_teacher(view):
 
 
 def request_student(view):
+    """ decorator for student: only the teacher or
+    the owner of this profile can enter else rise error """
     @wraps(view)
     def _view(request, *args, **kwargs):
         print(request.user.is_staff)

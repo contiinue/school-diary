@@ -1,22 +1,25 @@
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import LoginView
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, logout
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
+from django.contrib.auth import login, logout
+from django.contrib.auth.views import LoginView
 from django.views.generic import ListView, FormView
-from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect, get_object_or_404
+
 from .models import *
 from .utils import request_teacher, request_student
+from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm
 
 
 class HomePage(ListView):
+    """ Home-page  """
     model = MyUser
     template_name = 'diary/homepage.html'
     context_object_name = 'user'
 
 
 class Register(FormView):
+    """ Register form send to template  """
     template_name = 'diary/register.html'
     form_class = NewUserForm
 
@@ -27,13 +30,12 @@ class Register(FormView):
             return redirect('teacher')
         return redirect(reverse('student', kwargs={'username': user.username}))
 
-    def get_context_data(self, **kwargs):
-        context = super(Register, self).get_context_data(**kwargs)
-        context['register_form'] = context['form']
-        return context
-
 
 class LoginUser(LoginView):
+    """
+    Login template return to console if user is teacher
+    else return to profile user
+    """
     template_name = 'diary/login.html'
 
     def get_success_url(self):
@@ -50,6 +52,7 @@ def logout_user(request):
 @method_decorator(login_required(login_url='login'), name='dispatch')
 @method_decorator(request_student, name='dispatch')
 class HomeWork(ListView):
+    """ Student homework """
     template_name = 'diary/homework.html'
     model = HomeWorkModel
     context_object_name = 'homework'
@@ -68,6 +71,8 @@ class HomeWork(ListView):
 @login_required(login_url='login')
 @request_student
 def student(request, username):
+    """ Student evaluation, get slug username and return student evaluations """
+
     user = get_object_or_404(MyUser, username=username)
     base_book = BookWithClass.objects.filter(student_class__number_class=user.learned_class.number_class)
     contex = {
@@ -78,6 +83,7 @@ def student(request, username):
 
 
 class Teacher(FormView):
+    """ Teacher console, teacher can set homework and move to class   """
     template_name = 'diary/teacher.html'
     form_class = NewHomeWorkForm
     success_url = 'teacher'
@@ -95,6 +101,7 @@ class Teacher(FormView):
 @login_required(login_url='login')
 @request_teacher
 def student_class(request, class_number, slug_name):
+    """ Student class , get class and view students of this class """
     model = MyUser.objects.filter(learned_class__slug=slug_name, learned_class__number_class=class_number)
 
     if request.method == 'POST':
@@ -108,4 +115,3 @@ def student_class(request, class_number, slug_name):
         'form': form
     }
     return render(request, 'diary/student_class.html', context=context)
-

@@ -5,7 +5,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 
 class MyUser(AbstractUser):
-
+    """
+    Base User registration , user has attributes ( base + teacher |  student, age, class  )
+    """
     who_registration = [
         ('teacher', 'Учитель'),
         ('student', 'Ученик')
@@ -34,6 +36,8 @@ class MyUser(AbstractUser):
 
 
 class HomeWorkModel(models.Model):
+    """ Teacher can set homework for student """
+
     item = models.ForeignKey('Books', on_delete=models.CASCADE, verbose_name='Предмет')
     student_class = models.ForeignKey('SchoolClass', on_delete=models.CASCADE, verbose_name='Класс')
     home_work = models.CharField(max_length=400, verbose_name='Домашнее задание')
@@ -44,9 +48,10 @@ class HomeWorkModel(models.Model):
 
 
 class SchoolClass(models.Model):
+    """ School class  """
+
     number_class = models.IntegerField(null=True)
     name_class = models.CharField(max_length=15)
-
     slug = models.SlugField(max_length=15)
 
     class Meta:
@@ -60,6 +65,8 @@ class SchoolClass(models.Model):
 
 
 class Books(models.Model):
+    """ School Books """
+
     book_name = models.CharField(max_length=63)
 
     def __str__(self):
@@ -67,6 +74,8 @@ class Books(models.Model):
 
 
 class BookWithClass(models.Model):
+    """ base book for student class, it was done for flexibility  """
+
     book = models.ForeignKey(Books, on_delete=models.CASCADE, null=True)
     student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, null=True)
 
@@ -75,6 +84,8 @@ class BookWithClass(models.Model):
 
 
 class Evaluation(models.Model):
+
+    """ the student's grades related to the course  """
     eval = [
         (1, 1),
         (2, 2),
