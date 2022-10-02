@@ -17,7 +17,6 @@ def request_student(view):
     the owner of this profile can enter else rise error """
     @wraps(view)
     def _view(request, *args, **kwargs):
-        print(request.user.is_staff)
         if not (request.user.username == kwargs['username'] or
                 request.user.is_student == 'teacher'):
             raise PermissionDenied

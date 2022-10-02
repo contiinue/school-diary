@@ -7,7 +7,7 @@
 <div class="container-lg">
 
   <div class="homework text-end">
-    <a class="btn btn-outline-primary" role="button" href="{% url 'homework' username=student.username %}">Домашнее Задание</a>
+    <a class="btn btn-outline-primary" role="button" href="{% url 'homework' username=request.user.username %}">Домашнее Задание</a>
   </div>
 
   {% if request.user.is_student == 'teacher' %}
@@ -16,6 +16,18 @@
                    {{ student.learned_class.number_class }} {{ student.learned_class.name_class }} </h1>
     </div>
   {% endif %}
+
+  <section>
+    <div class="quarters">
+      {% for i in all_quarter %}
+        {% if i.id == request_quarter %}
+          <a class="btn btn-info" href="{% url 'student' username=request.user.username %}?quarter={{ i.pk }}">{{ i.name }}</a>
+        {% else %}
+            <a class="btn btn-dark" href="{% url 'student' username=request.user.username %}?quarter={{ i.pk }}">{{ i.name }}</a>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </section>
 
   <div class="student-eval">
     <table class="table">
@@ -27,12 +39,11 @@
         </tr>
       </thead>
       </thead>
-        {% for i in books %}
-          {% get_eval i student.username as evals %}
+        {% for i in books.items %}
           <tr>
-            <td class="row">{{i.book.book_name}}</td>
-            <td>{{ evals |join:', ' }}</td>
-            <td>{{ evals | middle_eval }}</td>
+            <td class="row">{{i.0}}</td>
+            <td>{{ i.1 | to_evaluation_list | join:', '}}</td>
+            <td>{{ i.1 | to_evaluation_list | middle_eval }}</td>
           </tr>
         {% endfor %}
       </thead>

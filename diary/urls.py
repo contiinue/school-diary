@@ -5,7 +5,7 @@ from diary.views import *
 urlpatterns = [
     path('', HomePage.as_view(), name='home'),
 
-    path('teacher/student/<slug:username>', student, name='student'),
+    path('student/<slug:username>', Student.as_view(), name='student'),
     path('teacher', Teacher.as_view(), name='teacher'),
 
     path('register/', Register.as_view(), name='register'),

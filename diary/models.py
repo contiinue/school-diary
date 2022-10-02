@@ -2,12 +2,15 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
+from datetime import date
 
 
 class MyUser(AbstractUser):
     """
-    Base User registration , user has attributes ( base + teacher |  student, age, class  )
+    Base User registration , user has attributes ( base + teacher | student, age, class  )
     """
+    email = models.EmailField(unique=True)
+
     who_registration = [
         ('teacher', 'Учитель'),
         ('student', 'Ученик')
@@ -24,12 +27,12 @@ class MyUser(AbstractUser):
         )
     ])
 
-    learned_class = models.ForeignKey('SchoolClass', on_delete=models.CASCADE,
-                                      null=True, blank=True, verbose_name='Выбор класса')
+    learned_class = models.ForeignKey(
+        'SchoolClass', on_delete=models.CASCADE,
+        null=True, blank=True, verbose_name='Выбор класса'
+    )
 
     is_student = models.CharField(max_length=30, choices=who_registration, verbose_name='Я')
-
-    REQUIRED_FIELDS = ['age', 'is_student']
 
     def get_absolute_url(self):
         return reverse('student', kwargs={'username': self.username})
@@ -83,8 +86,16 @@ class BookWithClass(models.Model):
         return '{}{} {}'.format(self.student_class.number_class, self.student_class.name_class, self.book.book_name)
 
 
-class Evaluation(models.Model):
+class Quarter(models.Model):
+    name = models.CharField(max_length=30)
+    start = models.DateField()
+    end = models.DateField()
 
+    def __str__(self):
+        return '{}'.format(self.name)
+
+
+class Evaluation(models.Model):
     """ the student's grades related to the course  """
     eval = [
         (1, 1),
@@ -96,7 +107,11 @@ class Evaluation(models.Model):
     student = models.ForeignKey(MyUser, blank=True, on_delete=models.CASCADE)
     item = models.ForeignKey(Books, on_delete=models.CASCADE)
     evaluation = models.IntegerField(choices=eval)
-    date = models.DateField(auto_now_add=True)
+    quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, blank=True)
+    date = models.DateField(auto_now=True)
+
+    def get_quarter(self):
+        return self.evaluation, self.date
 
     def __str__(self):
         return f'{self.student.username, self.item.book_name, self.evaluation}'

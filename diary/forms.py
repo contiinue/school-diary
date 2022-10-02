@@ -59,12 +59,11 @@ class NewHomeWorkForm(forms.ModelForm):
             'item': forms.Select(attrs={'class': 'form-control'}),
             'student_class': forms.Select(attrs={'class': 'form-control'}),
             'home_work': forms.TextInput(attrs={'class': 'form-control'}),
-
         }
 
 
 class SetEvaluationForm(forms.ModelForm):
     class Meta:
         model = Evaluation
-        fields = ['student', 'item', 'evaluation']
+        fields = ['student', 'item', 'quarter', 'evaluation']
 

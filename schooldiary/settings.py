@@ -80,10 +80,10 @@ WSGI_APPLICATION = 'schooldiary.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'postgres',
+        'NAME': 'diary',
         'USER': 'postgres',
-        'PASSWORD': 'postgres1234',
-        'HOST': 'postgresql',
+        'PASSWORD': '2407',
+        'HOST': 'localhost',
         'PORT': '5432',
     }
 }
