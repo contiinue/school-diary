@@ -2,15 +2,13 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import SelectDateWidget
 
-from diary.models import MyUser, HomeWorkModel, Evaluation
+from diary.models import MyUser, HomeWorkModel, Evaluation, TeacherRegistration, StudentRegistration
 from django.contrib.admin.widgets import AdminDateWidget
 
 
 class NewUserForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['learned_class'].empty_label = 'Не выбрано'
-        self.fields['is_student'].empty_label = 'Не выбрано'
 
     username = forms.CharField(label='Логин', widget=forms.TextInput(attrs={'class': 'form-control'}))
     password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
@@ -19,11 +17,11 @@ class NewUserForm(UserCreationForm):
 
     class Meta:
         model = MyUser
-        fields = ('first_name', 'last_name',
-                  "username", 'email', "password1", "password2",
-                  'age', 'learned_class',
-                  'is_student',
-                  )
+        fields = (
+            'first_name', 'last_name',
+            "username", 'email',
+            "password1", "password2"
+        )
 
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
@@ -32,9 +30,6 @@ class NewUserForm(UserCreationForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control'}),
             'password2': forms.PasswordInput(attrs={'class': 'form-control'}),
-            'age': forms.NumberInput(attrs={'class': 'form-control'}),
-            'learned_class': forms.Select(attrs={'class': 'form-select'}),
-            'is_student': forms.Select(attrs={'class': 'form-select'}),
         }
 
     def save(self, commit=True):
@@ -43,6 +38,18 @@ class NewUserForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class TeacherRegistrationForm(forms.ModelForm):
+    class Meta:
+        model = TeacherRegistration
+        fields = ['age', 'item']
+
+
+class StudentRegistrationForm(forms.ModelForm):
+    class Meta:
+        model = StudentRegistration
+        fields = ['age', 'learned_class']
 
 
 class NewHomeWorkForm(forms.ModelForm):
@@ -66,4 +73,3 @@ class SetEvaluationForm(forms.ModelForm):
     class Meta:
         model = Evaluation
         fields = ['student', 'item', 'quarter', 'evaluation']
-

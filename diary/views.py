@@ -7,7 +7,7 @@ from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm
 from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
 from django.contrib.auth.views import LoginView
-from django.views.generic import ListView, FormView, TemplateView
+from django.views.generic import ListView, FormView, TemplateView, View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
@@ -18,10 +18,17 @@ class HomePage(TemplateView):
     template_name = 'diary/homepage.html'
 
 
-class Register(FormView):
+class Register(View):
     """ Register form send to template  """
     template_name = 'diary/register.html'
     form_class = NewUserForm
+
+    def get(self, request, *args, **kwargs):
+        print(request)
+        return render(request, self.template_name, context={'somefsdfsdfs': 1})
+
+    def post(self, request, *args, **kwargs):
+        pass
 
     def form_valid(self, form):
         user = form.save()

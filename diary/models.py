@@ -2,7 +2,38 @@ from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
-from datetime import date
+
+
+class UserRegistrationMixin(models.Model):
+    class Meta:
+        abstract = True
+
+    age = models.IntegerField(null=True, verbose_name='Возраст', validators=[
+        MaxValueValidator(
+            limit_value=75,
+            message='Максимум 75'
+        ),
+        MinValueValidator(
+            limit_value=4,
+            message='Минимум 4'
+        )
+    ])
+
+
+class StudentRegistration(UserRegistrationMixin):
+    learned_class = models.ForeignKey(
+        'SchoolClass',
+        on_delete=models.CASCADE,
+        verbose_name='Выбор класса'
+    )
+
+
+class TeacherRegistration(UserRegistrationMixin):
+    item = models.ForeignKey(
+        'Books',
+        on_delete=models.PROTECT,
+        verbose_name='Выбор Предмета'
+    )
 
 
 class MyUser(AbstractUser):
@@ -11,28 +42,8 @@ class MyUser(AbstractUser):
     """
     email = models.EmailField(unique=True)
 
-    who_registration = [
-        ('teacher', 'Учитель'),
-        ('student', 'Ученик')
-    ]
-
-    age = models.IntegerField(null=True, verbose_name='Возраст', validators=[
-        MaxValueValidator(
-            limit_value=60,
-            message='Максимум 60'
-        ),
-        MinValueValidator(
-            limit_value=5,
-            message='Минимум 5'
-        )
-    ])
-
-    learned_class = models.ForeignKey(
-        'SchoolClass', on_delete=models.CASCADE,
-        null=True, blank=True, verbose_name='Выбор класса'
-    )
-
-    is_student = models.CharField(max_length=30, choices=who_registration, verbose_name='Я')
+    student = models.OneToOneField(StudentRegistration, on_delete=models.CASCADE, null=True, blank=True)
+    teacher = models.OneToOneField(TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse('student', kwargs={'username': self.username})
