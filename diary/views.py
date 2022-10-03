@@ -24,7 +24,7 @@ class Register(View):
     form_class = NewUserForm
 
     def get(self, request, *args, **kwargs):
-        print(request)
+        print(request.GET)
         return render(request, self.template_name, context={'somefsdfsdfs': 1})
 
     def post(self, request, *args, **kwargs):
