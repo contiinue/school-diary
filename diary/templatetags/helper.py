@@ -18,7 +18,7 @@ def get_now_date():
 @register.filter()
 def middle_eval(evaluations: list):
     try:
-        return sum(evaluations) / len(evaluations)
+        return round(sum(evaluations) / len(evaluations), 2)
     except ZeroDivisionError:
         return 0
 
