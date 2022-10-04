@@ -1,11 +1,12 @@
 from .get_quarter import get_now_quarter, get_evaluation_of_quarter
 
 from .models import *
-from .utils import request_teacher, request_student
-from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm
+from .utils import request_teacher, request_student, get_teacher_or_student_form
+from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm, StudentRegistrationForm, TeacherRegistrationForm
 
 from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.views.generic import ListView, FormView, TemplateView, View
 from django.utils.decorators import method_decorator
@@ -24,18 +25,45 @@ class Register(View):
     form_class = NewUserForm
 
     def get(self, request, *args, **kwargs):
-        print(request.GET)
-        return render(request, self.template_name, context={'somefsdfsdfs': 1})
+        return render(request, self.template_name, self.get_context_data())
 
     def post(self, request, *args, **kwargs):
-        pass
+        register, who_register = get_teacher_or_student_form(request.POST)
+        if not register:
+            return render(request, self.template_name, context={})
+        user = NewUserForm(request.POST)
+        if user.is_valid():
+            u = user.save(commit=False)
+            if isinstance(register, StudentRegistration):
+                u.student = register
+                u.save()
+                login(request, u)
+                return redirect(who_register)
+            u.teacher = register
+            login(request, u)
+            u.save()
+            return redirect(who_register)
+        return redirect('register')
 
-    def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        if user.is_student == 'teacher':
-            return redirect('teacher')
-        return redirect(reverse('student', kwargs={'username': user.username}))
+    def save_user_to_model(self):
+
+    def get_context_data(self, **kwargs):
+        who_register = self.request.GET.get('register_teacher_or_student', False)
+        kwargs['user'] = NewUserForm
+        if who_register == 'teacher':
+            kwargs['registration'] = TeacherRegistrationForm
+        elif who_register == 'student':
+            kwargs['registration'] = StudentRegistrationForm
+        else:
+            return {}
+        return kwargs
+
+    # def form_valid(self, form):
+    #     user = form.save()
+    #     login(self.request, user)
+    #     if user.is_student == 'teacher':
+    #         return redirect('teacher')
+    #     return redirect(reverse('student', kwargs={'username': user.username}))
 
 
 class LoginUser(LoginView):
