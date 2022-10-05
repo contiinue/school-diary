@@ -1,8 +1,8 @@
 from .get_quarter import get_now_quarter, get_evaluation_of_quarter
 
 from .models import *
-from .utils import request_teacher, request_student, get_teacher_or_student_form
-from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm, StudentRegistrationForm, TeacherRegistrationForm
+from .utils import request_teacher, request_student, get_teacher_or_student_form, save_user_to_model
+from .forms import MyUserForm, NewHomeWorkForm, SetEvaluationForm, StudentRegistrationForm, TeacherRegistrationForm
 
 from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
@@ -22,34 +22,27 @@ class HomePage(TemplateView):
 class Register(View):
     """ Register form send to template  """
     template_name = 'diary/register.html'
-    form_class = NewUserForm
+    form_class = MyUserForm
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context_data())
 
     def post(self, request, *args, **kwargs):
+        q = request.POST.copy()
         register, who_register = get_teacher_or_student_form(request.POST)
-        if not register:
-            return render(request, self.template_name, context={})
-        user = NewUserForm(request.POST)
-        if user.is_valid():
-            u = user.save(commit=False)
-            if isinstance(register, StudentRegistration):
-                u.student = register
-                u.save()
-                login(request, u)
-                return redirect(who_register)
-            u.teacher = register
-            login(request, u)
-            u.save()
-            return redirect(who_register)
-        return redirect('register')
-
-    def save_user_to_model(self):
+        user_form = save_user_to_model(request, register)
+        if isinstance(register, (StudentRegistrationForm, TeacherRegistrationForm)):
+            return render(request, self.template_name, context={'user': user_form, 'registration': register})
+        if isinstance(user_form, MyUserForm):
+            return render(request, self.template_name, context={'user': user_form, 'registration': register})
+        login(request, user_form)
+        if who_register == 'student':
+            return redirect(reverse('student', kwargs={'username': user_form.username}))
+        return redirect('teacher')
 
     def get_context_data(self, **kwargs):
         who_register = self.request.GET.get('register_teacher_or_student', False)
-        kwargs['user'] = NewUserForm
+        kwargs['user'] = MyUserForm
         if who_register == 'teacher':
             kwargs['registration'] = TeacherRegistrationForm
         elif who_register == 'student':

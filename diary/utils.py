@@ -1,7 +1,10 @@
 from functools import wraps
 from typing import Union, Literal
+
+from django.contrib.auth import login
 from django.core.exceptions import PermissionDenied
-from diary.forms import StudentRegistrationForm, TeacherRegistrationForm
+from diary.forms import StudentRegistrationForm, TeacherRegistrationForm, MyUserForm
+from diary.models import StudentRegistration, TeacherRegistration, MyUser
 
 
 def request_teacher(view):
@@ -30,14 +33,15 @@ def request_student(view):
     return _view
 
 
-def check_is_valid_form(
-        form: TeacherRegistrationForm | StudentRegistrationForm) -> TeacherRegistrationForm | StudentRegistrationForm:
+def check_is_valid_form(form: TeacherRegistrationForm | StudentRegistrationForm) -> \
+        Union[StudentRegistrationForm, TeacherRegistrationForm, TeacherRegistration, StudentRegistration]:
     if form.is_valid():
-        return form.save(commit=True)
+        return form.save(commit=False)
+    return form
 
 
 def get_teacher_or_student_form(
-        post: dict) -> tuple[TeacherRegistrationForm, str] | tuple[StudentRegistrationForm, str]:
+        post: dict) -> tuple[TeacherRegistration, str] | tuple[StudentRegistration, str]:
     if 'item' in post:
         return check_is_valid_form(
             StudentRegistrationForm(post)
@@ -49,9 +53,23 @@ def get_teacher_or_student_form(
         ), 'student'
 
 
-def save_user_to_model(request, user):
-    u = user.save(commit=False)
+def _do_save_user_to_model(
+        user_form: MyUser, register: Union[StudentRegistrationForm, TeacherRegistrationForm]) -> MyUserForm:
+    u = user_form.save(commit=False)
+    register.save()
     if isinstance(register, StudentRegistration):
         u.student = register
         u.save()
-        login(request, u)
+        return u
+    u.teacher = register
+    u.save()
+    return u
+
+
+def save_user_to_model(request, register: Union[StudentRegistrationForm, TeacherRegistrationForm]):
+    form = MyUserForm(request.POST)
+    if form.is_valid():
+        return _do_save_user_to_model(form, register)
+    return form
+
+

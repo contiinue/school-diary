@@ -6,7 +6,7 @@ from diary.models import MyUser, HomeWorkModel, Evaluation, TeacherRegistration,
 from django.contrib.admin.widgets import AdminDateWidget
 
 
-class NewUserForm(UserCreationForm):
+class MyUserForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -20,7 +20,7 @@ class NewUserForm(UserCreationForm):
         fields = (
             'first_name', 'last_name',
             "username", 'email',
-            "password1", "password2"
+            "password1", "password2", 'student', 'teacher'
         )
 
         widgets = {
@@ -33,8 +33,10 @@ class NewUserForm(UserCreationForm):
         }
 
     def save(self, commit=True):
-        user = super(NewUserForm, self).save(commit=False)
+        user = super(MyUserForm, self).save(commit=False)
         user.email = self.cleaned_data['email']
+        print(self.cleaned_data)
+        print(self.data)
         if commit:
             user.save()
         return user

@@ -21,13 +21,11 @@
 			</div>
 		   </form> 
 		
-		{% if user %}
+		{% if user and registration %}
 		<form method="POST">
 			{% csrf_token %}
-			{{registration.errors}}
 			{{ registration }}
 			{{ user }}
-			{{registration.errors}}
 			<button class="btn btn-primary" type="submit">Register</button>
 		</form>
 		{% endif %}
