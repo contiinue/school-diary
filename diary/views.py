@@ -1,12 +1,11 @@
 from .get_quarter import get_now_quarter, get_evaluation_of_quarter
 
 from .models import *
-from .utils import request_teacher, request_student, get_teacher_or_student_form, save_user_to_model
+from .utils import request_teacher, request_student
 from .forms import MyUserForm, NewHomeWorkForm, SetEvaluationForm, StudentRegistrationForm, TeacherRegistrationForm
 
 from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.views.generic import ListView, FormView, TemplateView, View
 from django.utils.decorators import method_decorator
@@ -22,23 +21,20 @@ class HomePage(TemplateView):
 class Register(View):
     """ Register form send to template  """
     template_name = 'diary/register.html'
-    form_class = MyUserForm
+    form = MyUserForm
 
     def get(self, request, *args, **kwargs):
         return render(request, self.template_name, self.get_context_data())
 
     def post(self, request, *args, **kwargs):
-        q = request.POST.copy()
-        register, who_register = get_teacher_or_student_form(request.POST)
-        user_form = save_user_to_model(request, register)
-        if isinstance(register, (StudentRegistrationForm, TeacherRegistrationForm)):
-            return render(request, self.template_name, context={'user': user_form, 'registration': register})
-        if isinstance(user_form, MyUserForm):
-            return render(request, self.template_name, context={'user': user_form, 'registration': register})
-        login(request, user_form)
-        if who_register == 'student':
-            return redirect(reverse('student', kwargs={'username': user_form.username}))
-        return redirect('teacher')
+        """todo: Сделать проверку юзера первой т.к мродели не ученика
+        todo: или учителя присваивается примери кей и невозможно сохранить юзера"""
+        teacher_or_student_form = self.get_form()
+        if teacher_or_student_form.is_valid():
+            some = teacher_or_student_form.save(commit=True)
+            print(some.pk, some)
+            return self.form_valid(some)
+        return render(request, self.template_name, teacher_or_student_form)
 
     def get_context_data(self, **kwargs):
         who_register = self.request.GET.get('register_teacher_or_student', False)
@@ -51,12 +47,22 @@ class Register(View):
             return {}
         return kwargs
 
-    # def form_valid(self, form):
-    #     user = form.save()
-    #     login(self.request, user)
-    #     if user.is_student == 'teacher':
-    #         return redirect('teacher')
-    #     return redirect(reverse('student', kwargs={'username': user.username}))
+    def get_form(self) -> TeacherRegistrationForm | StudentRegistrationForm:
+        if 'item' in self.request.POST:
+            return TeacherRegistrationForm(self.request.POST)
+
+        if 'learned_class' in self.request.POST:
+            return StudentRegistrationForm(self.request.POST)
+
+    def form_valid(self, model_user):
+        my_query = self.request.POST.copy()
+        my_query['student'] = model_user.pk
+        form_user = self.form(my_query)
+        if form_user.is_valid():
+            model_user.save()
+            u = form_user.save()
+            login(self.request, u)
+            return redirect(reverse('student', kwargs={'username': u.username}))
 
 
 class LoginUser(LoginView):

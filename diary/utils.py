@@ -33,26 +33,6 @@ def request_student(view):
     return _view
 
 
-def check_is_valid_form(form: TeacherRegistrationForm | StudentRegistrationForm) -> \
-        Union[StudentRegistrationForm, TeacherRegistrationForm, TeacherRegistration, StudentRegistration]:
-    if form.is_valid():
-        return form.save(commit=False)
-    return form
-
-
-def get_teacher_or_student_form(
-        post: dict) -> tuple[TeacherRegistration, str] | tuple[StudentRegistration, str]:
-    if 'item' in post:
-        return check_is_valid_form(
-            StudentRegistrationForm(post)
-        ), 'teacher'
-
-    if 'learned_class' in post:
-        return check_is_valid_form(
-            StudentRegistrationForm(post)
-        ), 'student'
-
-
 def _do_save_user_to_model(
         user_form: MyUser, register: Union[StudentRegistrationForm, TeacherRegistrationForm]) -> MyUserForm:
     u = user_form.save(commit=False)
@@ -71,5 +51,3 @@ def save_user_to_model(request, register: Union[StudentRegistrationForm, Teacher
     if form.is_valid():
         return _do_save_user_to_model(form, register)
     return form
-
-

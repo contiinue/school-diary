@@ -35,8 +35,6 @@ class MyUserForm(UserCreationForm):
     def save(self, commit=True):
         user = super(MyUserForm, self).save(commit=False)
         user.email = self.cleaned_data['email']
-        print(self.cleaned_data)
-        print(self.data)
         if commit:
             user.save()
         return user
