@@ -1,9 +1,9 @@
 version: '3.9'
 
 services:
-  postgresql:
+  postgresql1:
     image: postgres
-    container_name: postgresql
+    container_name: postgresql1
     environment:
       POSTGRES_USER: postgres
       POSTGRES_DB: postgres
@@ -24,6 +24,6 @@ services:
     ports:
       - '8000:8000'
     depends_on:
-      - postgresql
+      - postgresql1
 
             

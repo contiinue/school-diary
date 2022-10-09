@@ -4,32 +4,45 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 
-class MyUser(AbstractUser):
-    """
-    Base User registration , user has attributes ( base + teacher |  student, age, class  )
-    """
-    who_registration = [
-        ('teacher', 'Учитель'),
-        ('student', 'Ученик')
-    ]
+class UserRegistrationMixin(models.Model):
+    class Meta:
+        abstract = True
 
     age = models.IntegerField(null=True, verbose_name='Возраст', validators=[
         MaxValueValidator(
-            limit_value=60,
-            message='Максимум 60'
+            limit_value=75,
+            message='Максимум 75'
         ),
         MinValueValidator(
-            limit_value=5,
-            message='Минимум 5'
+            limit_value=4,
+            message='Минимум 4'
         )
     ])
 
-    learned_class = models.ForeignKey('SchoolClass', on_delete=models.CASCADE,
-                                      null=True, blank=True, verbose_name='Выбор класса')
 
-    is_student = models.CharField(max_length=30, choices=who_registration, verbose_name='Я')
+class StudentRegistration(UserRegistrationMixin):
+    learned_class = models.ForeignKey(
+        'SchoolClass',
+        on_delete=models.CASCADE,
+        verbose_name='Выбор класса'
+    )
 
-    REQUIRED_FIELDS = ['age', 'is_student']
+
+class TeacherRegistration(UserRegistrationMixin):
+    item = models.ForeignKey(
+        'Books',
+        on_delete=models.PROTECT,
+        verbose_name='Выбор Предмета'
+    )
+
+
+class MyUser(AbstractUser):
+    """
+    Base User registration , user has attributes ( base + teacher | student, age, class  )
+    """
+    email = models.EmailField(unique=True)
+    student = models.OneToOneField(StudentRegistration, on_delete=models.CASCADE, null=True, blank=True)
+    teacher = models.OneToOneField(TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse('student', kwargs={'username': self.username})
@@ -83,8 +96,16 @@ class BookWithClass(models.Model):
         return '{}{} {}'.format(self.student_class.number_class, self.student_class.name_class, self.book.book_name)
 
 
-class Evaluation(models.Model):
+class Quarter(models.Model):
+    name = models.CharField(max_length=30)
+    start = models.DateField()
+    end = models.DateField()
 
+    def __str__(self):
+        return '{}'.format(self.name)
+
+
+class Evaluation(models.Model):
     """ the student's grades related to the course  """
     eval = [
         (1, 1),
@@ -96,7 +117,11 @@ class Evaluation(models.Model):
     student = models.ForeignKey(MyUser, blank=True, on_delete=models.CASCADE)
     item = models.ForeignKey(Books, on_delete=models.CASCADE)
     evaluation = models.IntegerField(choices=eval)
-    date = models.DateField(auto_now_add=True)
+    quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, blank=True)
+    date = models.DateField(auto_now=True)
+
+    def get_quarter(self):
+        return self.evaluation, self.date
 
     def __str__(self):
         return f'{self.student.username, self.item.book_name, self.evaluation}'

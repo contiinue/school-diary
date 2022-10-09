@@ -13,5 +13,6 @@ admin.site.register(Books)
 admin.site.register(Evaluation)
 admin.site.register(SchoolClass, SchoolClassAdmin)
 admin.site.register(BookWithClass)
+admin.site.register(Quarter)
 
 # Register your models here.

@@ -1,31 +1,22 @@
 {% extends "diary/base.html" %}
-
+{% load helper %}
 
 {% block content %}
 
 <div class="container-lg">
+    <h2>Оценки по предмету: {{ request.user.teacher.item.book_name }}, {{ student_class_number.number_class }} {{ student_class_number.name_class }} класса</h2>
     <table class="table">
         <tr>
             <th>#</th>
-            <th>Предмет</th>
             <th>Оценка</th>
+            <th>Средний балл</th>
         </tr>
 
-        {% for i in model %}
+        {% for i in object_list.items %}
         <tr>
-           
-            <form method="POST">
-                <td><a href="{{ i.get_absolute_url }}">{{ i.last_name }} {{ i.first_name }}</a></td>
-                {% csrf_token %}
-                <td class="row">{{form.item}}</td>
-                <td>{{form.evaluation}}</td>
-
-                <td>
-                    <input type="hidden" name="student" value="{{i.id}}">
-                    <button class="btn btn-primary" type="submit">создать</button>
-                </td>
-            </form>
-            
+            <td>{{ i.0.first_name }} {{ i.0.last_name }}</td>
+            <td>{{ i.1 | to_evaluation_list | join:', '}}</td>
+            <td>{{ i.1 | to_evaluation_list | middle_eval }}</td>
         </tr>
         {% endfor %}
     </table>

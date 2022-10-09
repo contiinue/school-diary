@@ -18,10 +18,7 @@ RUN pip install -r requirements.txt
 COPY docker /app/
 
 
-RUN groupadd -r --gid=${GROUP_ID} schooldiary && useradd --uid=${USER_ID} --no-log-init -r -m -g schooldiary schooldiary
-RUN chown -R schooldiary:schooldiary /app
-
-USER schooldiary
+USER test
 
 ENTRYPOINT ["sh","/app/docker/server_run.sh"]
 

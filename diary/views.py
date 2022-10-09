@@ -1,34 +1,90 @@
+from django.views.generic.base import TemplateResponseMixin
+
+from .get_quarter import get_now_quarter, get_evaluation_of_quarter
+
+from .models import *
+from .utils import request_teacher, request_student
+from .forms import MyUserForm, NewHomeWorkForm, SetEvaluationForm, StudentRegistrationForm, TeacherRegistrationForm
+
 from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
 from django.contrib.auth.views import LoginView
-from django.views.generic import ListView, FormView
+from django.views.generic import ListView, FormView, TemplateView, View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 
-from .models import *
-from .utils import request_teacher, request_student
-from .forms import NewUserForm, NewHomeWorkForm, SetEvaluationForm
 
-
-class HomePage(ListView):
+class HomePage(TemplateView):
     """ Home-page  """
-    model = MyUser
     template_name = 'diary/homepage.html'
-    context_object_name = 'user'
 
 
-class Register(FormView):
-    """ Register form send to template  """
+class Register(View, TemplateResponseMixin):
+    """ 
+    :todo посмотреть-сделать миксины и уменьшить килечество кода
+    :todo убрать дублирование render_to_response
+    Register form send to template  
+    """
     template_name = 'diary/register.html'
-    form_class = NewUserForm
+    form = MyUserForm
+    success_url = 'student'
 
-    def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        if user.is_student == 'teacher':
-            return redirect('teacher')
-        return redirect(reverse('student', kwargs={'username': user.username}))
+    def get(self, request, *args, **kwargs):
+        return render(request, self.template_name, self.get_context_data())
+
+    def post(self, request, *args, **kwargs):
+        user_form = self.form(request.POST)
+        if user_form.is_valid():
+            return self.form_valid(
+                user_form.save(commit=False)
+            )
+        return self.render_to_response({'user': user_form, 'registration': self.get_form()})
+
+    def get_context_data(self, **kwargs):
+        who_register = self.request.GET.get('register_teacher_or_student')
+        kwargs['user'] = MyUserForm
+        if who_register == 'teacher':
+            kwargs['registration'] = TeacherRegistrationForm
+        elif who_register == 'student':
+            kwargs['registration'] = StudentRegistrationForm
+        else:
+            return {}
+        return kwargs
+
+    def get_form(self) -> TeacherRegistrationForm | StudentRegistrationForm:
+        if 'item' in self.request.POST:
+            self.success_url = 'teacher'
+            return TeacherRegistrationForm(self.request.POST)
+
+        if 'learned_class' in self.request.POST:
+            return StudentRegistrationForm(self.request.POST)
+
+    def form_valid(self, user_model):
+        form_teacher_or_student = self.get_form()
+        if form_teacher_or_student.is_valid():
+            stud_or_teach_model = form_teacher_or_student.save()
+            user = self.save_user(user_model, stud_or_teach_model)
+            login(self.request, user)
+            return redirect(self.get_success_url())
+        return self.render_to_response(
+            {'user': self.form(self.request.POST), 'registration': self.get_form()}
+        )
+
+    @staticmethod
+    def save_user(user_model: MyUser, student_or_teacher_model: StudentRegistration | TeacherRegistration) -> MyUser:
+        if isinstance(student_or_teacher_model, TeacherRegistration):
+            user_model.teacher = student_or_teacher_model
+            user_model.save()
+            return user_model
+        user_model.student = student_or_teacher_model
+        user_model.save()
+        return user_model
+
+    def get_success_url(self):
+        if self.success_url == 'student':
+            return reverse_lazy('student', kwargs={'username': self.request.user.username})
+        return reverse_lazy('teacher')
 
 
 class LoginUser(LoginView):
@@ -39,7 +95,7 @@ class LoginUser(LoginView):
     template_name = 'diary/login.html'
 
     def get_success_url(self):
-        if self.request.user.is_student == 'student':
+        if isinstance(self.request.user.student, StudentRegistration):
             return reverse_lazy('student', kwargs={'username': self.request.user.username})
         return reverse_lazy('teacher')
 
@@ -60,7 +116,8 @@ class HomeWork(ListView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(
-            student_class=self.request.user.learned_class)
+            student_class=self.request.user.learned_class
+        )
 
     def get_context_data(self, **kwargs):
         context = super(HomeWork, self).get_context_data(**kwargs)
@@ -68,18 +125,30 @@ class HomeWork(ListView):
         return context
 
 
-@login_required(login_url='login')
-@request_student
-def student(request, username):
-    """ Student evaluation, get slug username and return student evaluations """
+class Student(ListView):
+    model = BookWithClass
+    template_name = 'diary/student.html'
+    context_object_name = 'books'
 
-    user = get_object_or_404(MyUser, username=username)
-    base_book = BookWithClass.objects.filter(student_class__number_class=user.learned_class.number_class)
-    contex = {
-        'student': user,
-        'books': base_book
-    }
-    return render(request, 'diary/student.html', contex)
+    def get_queryset(self):
+        qs = super().get_queryset()
+        evaluations = dict()
+        for book in qs:
+            evaluations[book.book.book_name] = get_evaluation_of_quarter(
+                self.request.user,
+                book.book.book_name,
+                self.request.GET.get('quarter')
+            )
+        return evaluations
+
+    def get_context_data(self, **kwargs):
+        context = super(Student, self).get_context_data(**kwargs)
+        context['now_quarter'] = get_now_quarter()
+        context['all_quarter'] = Quarter.objects.all()
+        request_quarter = self.request.GET.get('quarter', None)
+        context['request_quarter'] = int(request_quarter) if request_quarter else get_now_quarter().pk
+
+        return context
 
 
 class Teacher(FormView):
@@ -98,11 +167,40 @@ class Teacher(FormView):
         return context
 
 
+class StudentClass(ListView):
+    template_name = 'diary/student_class.html'
+    model = MyUser
+    context_object_name = 'evaluations_with_name_user'
+
+    def get_queryset(self):
+        self.queryset = MyUser.objects.filter(
+            student__learned_class__number_class=self.kwargs.get('class_number'),
+            student__learned_class__slug=self.kwargs.get('slug_name')
+        )
+        queryset = super().get_queryset()
+        list_eval = dict()
+        for user in queryset:
+            list_eval[user] = get_evaluation_of_quarter(
+                user,
+                self.request.user.teacher.item.book_name
+            )
+        return list_eval
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(StudentClass, self).get_context_data(**kwargs)
+        context['student_class_number'] = SchoolClass.objects.get(
+            number_class=self.kwargs.get('class_number'),
+            slug=self.kwargs.get('slug_name')
+        )
+        return context
+
+
 @login_required(login_url='login')
 @request_teacher
 def student_class(request, class_number, slug_name):
     """ Student class , get class and view students of this class """
-    model = MyUser.objects.filter(learned_class__slug=slug_name, learned_class__number_class=class_number)
+    model = MyUser.objects.filter(student__learned_class__slug=slug_name,
+                                  student__learned_class__number_class=class_number)
 
     if request.method == 'POST':
         form = SetEvaluationForm(request.POST)
@@ -112,6 +210,7 @@ def student_class(request, class_number, slug_name):
     form = SetEvaluationForm()
     context = {
         'model': model,
-        'form': form
+        'form': form,
+        'quarter': get_now_quarter().pk
     }
     return render(request, 'diary/student_class.html', context=context)
