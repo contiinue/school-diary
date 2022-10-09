@@ -1,2 +1,3 @@
 
-const InputFormValue = document.querySelector()
+const MyButtun = document.querySelector('.test-js')
+alert('some')

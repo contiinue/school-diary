@@ -41,7 +41,7 @@
       </thead>
         {% for i in books.items %}
           <tr>
-            <td class="row">{{i.0}}</td>
+            <td class="row">{{ i.0 }}</td>
             <td>{{ i.1 | to_evaluation_list | join:', '}}</td>
             <td>{{ i.1 | to_evaluation_list | middle_eval }}</td>
           </tr>

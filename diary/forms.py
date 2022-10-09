@@ -1,9 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.forms import SelectDateWidget
-
 from diary.models import MyUser, HomeWorkModel, Evaluation, TeacherRegistration, StudentRegistration
-from django.contrib.admin.widgets import AdminDateWidget
 
 
 class MyUserForm(UserCreationForm):
@@ -20,7 +17,7 @@ class MyUserForm(UserCreationForm):
         fields = (
             'first_name', 'last_name',
             "username", 'email',
-            "password1", "password2", 'student', 'teacher'
+            "password1", "password2"
         )
 
         widgets = {
@@ -45,11 +42,21 @@ class TeacherRegistrationForm(forms.ModelForm):
         model = TeacherRegistration
         fields = ['age', 'item']
 
+        widgets = {
+            'age': forms.TextInput(attrs={'class': 'form-control'}),
+            'item': forms.Select(attrs={'class': 'form-control'})
+        }
+
 
 class StudentRegistrationForm(forms.ModelForm):
     class Meta:
         model = StudentRegistration
         fields = ['age', 'learned_class']
+
+        widgets = {
+            'age': forms.TextInput(attrs={'class': 'form-control'}),
+            'learned_class': forms.Select(attrs={'class': 'form-control'})
+        }
 
 
 class NewHomeWorkForm(forms.ModelForm):

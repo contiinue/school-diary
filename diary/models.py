@@ -41,7 +41,6 @@ class MyUser(AbstractUser):
     Base User registration , user has attributes ( base + teacher | student, age, class  )
     """
     email = models.EmailField(unique=True)
-
     student = models.OneToOneField(StudentRegistration, on_delete=models.CASCADE, null=True, blank=True)
     teacher = models.OneToOneField(TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True)
 

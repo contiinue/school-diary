@@ -5,10 +5,14 @@
 <div class="container-lg">
 	<div class="register-form">
 		<h1>Регистрация</h1>
-		{% if ask_who %}
-			
-		{% endif%}
-
+		{% if user and registration %}
+		<form method="POST">
+			{% csrf_token %}
+			{{ registration }}
+			{{ user }}
+			<button class="btn btn-primary" type="submit">Register</button>
+		</form>
+		{% else %}
 		<form action="" id="size-form">
 			<div class="ask">
 			 <select name="register_teacher_or_student" form="size-form" class="form-select" aria-label="Default select example">
@@ -20,14 +24,6 @@
 			  <button type="submit" class="btn btn-primary mb-4">Submit</button>
 			</div>
 		   </form> 
-		
-		{% if user and registration %}
-		<form method="POST">
-			{% csrf_token %}
-			{{ registration }}
-			{{ user }}
-			<button class="btn btn-primary" type="submit">Register</button>
-		</form>
 		{% endif %}
 		<p class="text-center">Если вы уже зарегистрированны, авторизоваться можно <a href="{% url 'login' %}">здесь</a></p>
 	</div>

@@ -1,10 +1,7 @@
 from functools import wraps
-from typing import Union, Literal
 
-from django.contrib.auth import login
 from django.core.exceptions import PermissionDenied
-from diary.forms import StudentRegistrationForm, TeacherRegistrationForm, MyUserForm
-from diary.models import StudentRegistration, TeacherRegistration, MyUser
+from diary.models import TeacherRegistration
 
 
 def request_teacher(view):
@@ -12,7 +9,10 @@ def request_teacher(view):
 
     @wraps(view)
     def _view(request, *args, **kwargs):
-        if not request.user.is_student == 'teacher':
+        print(bool(request.user.teacher))
+        print(bool(request.user.student))
+        print(request.user.is_staff)
+        if not request.user.teacher:
             raise PermissionDenied
         return view(request, *args, **kwargs)
 
@@ -31,23 +31,3 @@ def request_student(view):
         return view(request, *args, **kwargs)
 
     return _view
-
-
-def _do_save_user_to_model(
-        user_form: MyUser, register: Union[StudentRegistrationForm, TeacherRegistrationForm]) -> MyUserForm:
-    u = user_form.save(commit=False)
-    register.save()
-    if isinstance(register, StudentRegistration):
-        u.student = register
-        u.save()
-        return u
-    u.teacher = register
-    u.save()
-    return u
-
-
-def save_user_to_model(request, register: Union[StudentRegistrationForm, TeacherRegistrationForm]):
-    form = MyUserForm(request.POST)
-    if form.is_valid():
-        return _do_save_user_to_model(form, register)
-    return form

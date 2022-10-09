@@ -13,6 +13,6 @@ urlpatterns = [
     path('logout', logout_user, name='logout'),
 
     path('homework/<slug:username>', HomeWork.as_view(), name='homework'),
-    path('student-class/<int:class_number>/<slug:slug_name>/', student_class, name='student-class'),
+    path('student-class/<int:class_number>/<slug:slug_name>/', StudentClass.as_view(), name='student-class'),
 ]
 
