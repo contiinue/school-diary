@@ -15,7 +15,7 @@
         {% for i in object_list.items %}
         <tr>
             <td>{{ i.0.first_name }} {{ i.0.last_name }}</td>
-            <td>{{ i.1 | to_evaluation_list | join:', '}}</td>
+            <td><input type="text" value="{{ i.1 | to_evaluation_list | join:', '}}"></td>
             <td>{{ i.1 | to_evaluation_list | middle_eval }}</td>
         </tr>
         {% endfor %}
