@@ -11,3 +11,9 @@ class EvaluationSerializer(serializers.Serializer):
     def create(self, validated_data):
         Evaluation.objects.create(**validated_data)
 
+
+class SetEvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evaluation
+        fields = '__all__'
+

@@ -1,16 +1,18 @@
 from rest_framework import generics, mixins, viewsets, views
 from rest_framework.response import Response
 
-from api.serializers import EvaluationSerializer
+from api.serializers import EvaluationSerializer, SetEvaluationSerializer
 from diary.get_quarter import get_evaluation_of_quarter
 from diary.models import Evaluation, MyUser
 
 
-class ApiSetEvaluation(views.APIView):
-    def get(self, request, class_number, slug_name):
+class ApiEvaluation(generics.ListCreateAPIView):
+    serializer_class = EvaluationSerializer
+
+    def get_queryset(self):
         users = MyUser.objects.filter(
-            student__learned_class__number_class=class_number,
-            student__learned_class__slug=slug_name
+            student__learned_class__number_class=1,
+            student__learned_class__slug='a'
         )
         user = list()
         for i in users:
@@ -19,11 +21,11 @@ class ApiSetEvaluation(views.APIView):
                  'first_name': i.first_name,
                  'last_name': i.last_name,
                  'evaluation': [i.evaluation for i in
-                                get_evaluation_of_quarter(i, request.user.teacher.item.book_name)],
-
+                                get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name)],
                  }
             )
-        return Response({'users': EvaluationSerializer(user, many=True).data})
+        return user
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, args, kwargs)
+
+# class ApiSetEvaluation(generics.CreateAPIView):
+#     serializer_class = SetEvaluationSerializer
