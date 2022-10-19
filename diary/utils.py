@@ -1,7 +1,6 @@
 from functools import wraps
 
 from django.core.exceptions import PermissionDenied
-from diary.models import TeacherRegistration
 
 
 def request_teacher(view):

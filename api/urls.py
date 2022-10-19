@@ -1,12 +1,11 @@
 from rest_framework import routers
 from django.urls import path, include
-from .views import ApiEvaluation
+from .views import ApiEvaluation, ApiSetEvaluation
 
 router = routers.DefaultRouter()
-router.register('', ApiEvaluation, basename='some')
-
+router.register('evaluation/(?P<class_number>\d+)/(?P<slug_name>\w+)', ApiEvaluation, basename='user-evaluation')
+router.register('evaluation', ApiSetEvaluation, basename='set-evaluation')
 
 urlpatterns = [
-    # path('<int:class_number>/<slug:slug_name>/', include(router.urls))
-    path('<int:class_number>/<slug:slug_name>/', ApiEvaluation.as_view())
+    path('', include(router.urls)),
 ]

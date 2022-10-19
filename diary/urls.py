@@ -2,6 +2,7 @@ from django.urls import path
 from diary.views import *
 
 
+
 urlpatterns = [
     path('', HomePage.as_view(), name='home'),
 
@@ -13,6 +14,6 @@ urlpatterns = [
     path('logout', logout_user, name='logout'),
 
     path('homework/<slug:username>', HomeWork.as_view(), name='homework'),
-    path('student-class/<int:class_number>/<slug:slug_name>/', StudentClass.as_view(), name='student-class'),
+    path('student-class/<int:class_number>/<slug:slug_name>/', StudentsClass.as_view(), name='student-class'),
+    path('student-class/<int:class_number>/<slug:slug_name>/download/', download_evaluations, name='download-evaluations')
 ]
-

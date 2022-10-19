@@ -86,6 +86,10 @@ class Books(models.Model):
         return self.book_name
 
 
+class SchoolTimetable(models.Model):
+    pass
+
+
 class BookWithClass(models.Model):
     """ base book for student class, it was done for flexibility  """
 
