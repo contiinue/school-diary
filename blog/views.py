@@ -3,14 +3,14 @@ from datetime import timedelta
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, FormView
 
-from .tasks import mailing_list
+from .tasks import mailing_list_articles
 from .forms import ArticleForm
 from .models import SchoolArticle
 
 
 class ListArticles(ListView):
     template_name = 'blog/articles.html'
-    queryset = SchoolArticle.objects.all()
+    queryset = SchoolArticle.objects.filter(is_published=True)
     context_object_name = 'school_article'
 
 
@@ -26,12 +26,10 @@ class CreateArticle(FormView):
     success_url = reverse_lazy('blog')
 
     def form_valid(self, form):
-        form.save()
-        time_for_gets_up = form.cleaned_data['date_create'] + timedelta(minutes=30)
-        mailing_list.apply_async(
-            'ssssssss',
+        mailing_list_articles.apply_async(
+            (form.save().pk,),
             eta=form.cleaned_data['date_create'],
-            visibility_timeout=time_for_gets_up
+            visibility_timeout=form.cleaned_data['date_create'] + timedelta(minutes=30)
         )
         return super().form_valid(form)
 
