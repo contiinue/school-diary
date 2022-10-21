@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+<!-- 
+{% block header %}
+<script src="https://jsuites.net/v4/jsuites.js"></script>
+<script src="https://jsuites.net/v4/jsuites.webcomponents.js"></script>
+<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+{% endblock %} -->
+
+{% block content %}
+<div class="container-lg">
+    <h1 class="title text-center">Школьный блог</h1>
+    <div class="position-relative">
+        {% if request.user.teacher %}
+            <a href="{% url 'create-article' %}" role="button" class="btn btn-success position-absolute start-100 translate-middle">Создать статью</a>
+        {% endif %}
+    </div>
+    <section>
+        <div class="articles">
+            {% for i in school_article %}
+            <p class="h3"><a href="{% url 'article' i.pk %} ">{{ i.title }}</a></p>
+            <img src="/media/{{ i.image }}" alt="" width="700" height="400">
+            <p>{{ i.content }}</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}

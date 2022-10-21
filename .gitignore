@@ -1,2 +1,4 @@
 /data
-/diary/__pycache__
+/set_env.sh
+**/__pycache__
+__pycache__
