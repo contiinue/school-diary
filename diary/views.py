@@ -1,10 +1,12 @@
+from django.http import HttpResponse
 from django.views.generic.base import TemplateResponseMixin
 
-from .get_quarter import get_now_quarter, get_evaluation_of_quarter
+from services.excel_evaluations import get_excel
+from services.get_evaluations_of_quarter import get_now_quarter, get_evaluation_of_quarter
 
 from .models import *
-from .utils import request_teacher, request_student
-from .forms import MyUserForm, NewHomeWorkForm, SetEvaluationForm, StudentRegistrationForm, TeacherRegistrationForm
+from .utils import request_student, request_teacher
+from .forms import MyUserForm, NewHomeWorkForm, StudentRegistrationForm, TeacherRegistrationForm
 
 from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
@@ -12,7 +14,7 @@ from django.contrib.auth.views import LoginView
 from django.views.generic import ListView, FormView, TemplateView, View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 
 
 class HomePage(TemplateView):
@@ -167,7 +169,7 @@ class Teacher(FormView):
         return context
 
 
-class StudentClass(ListView):
+class StudentsClass(ListView):
     template_name = 'diary/student_class.html'
     model = MyUser
     context_object_name = 'evaluations_with_name_user'
@@ -187,7 +189,7 @@ class StudentClass(ListView):
         return list_eval
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        context = super(StudentClass, self).get_context_data(**kwargs)
+        context = super(StudentsClass, self).get_context_data(**kwargs)
         context['student_class_number'] = SchoolClass.objects.get(
             number_class=self.kwargs.get('class_number'),
             slug=self.kwargs.get('slug_name')
@@ -195,22 +197,12 @@ class StudentClass(ListView):
         return context
 
 
-@login_required(login_url='login')
-@request_teacher
-def student_class(request, class_number, slug_name):
-    """ Student class , get class and view students of this class """
-    model = MyUser.objects.filter(student__learned_class__slug=slug_name,
-                                  student__learned_class__number_class=class_number)
-
-    if request.method == 'POST':
-        form = SetEvaluationForm(request.POST)
-        if form.is_valid():
-            form.save()
-
-    form = SetEvaluationForm()
-    context = {
-        'model': model,
-        'form': form,
-        'quarter': get_now_quarter().pk
-    }
-    return render(request, 'diary/student_class.html', context=context)
+@method_decorator(login_required(login_url='login'), name='dispatch')
+@method_decorator(request_teacher, name='dispatch')
+def download_evaluations(request, class_number, slug_name):
+    file_data = get_excel(
+        request.user.teacher.item.book_name, class_number, slug_name
+    )
+    response = HttpResponse(file_data, content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="foo.xls"'
+    return response

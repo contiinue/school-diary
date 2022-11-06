@@ -5,20 +5,13 @@
 
 <div class="container-lg">
     <h2>Оценки по предмету: {{ request.user.teacher.item.book_name }}, {{ student_class_number.number_class }} {{ student_class_number.name_class }} класса</h2>
-    <table class="table">
-        <tr>
+    <table class="table ">
+        <tr id="info_block_for_evaluations">
             <th>#</th>
-            <th>Оценка</th>
-            <th>Средний балл</th>
         </tr>
+        
 
-        {% for i in object_list.items %}
-        <tr>
-            <td>{{ i.0.first_name }} {{ i.0.last_name }}</td>
-            <td>{{ i.1 | to_evaluation_list | join:', '}}</td>
-            <td>{{ i.1 | to_evaluation_list | middle_eval }}</td>
-        </tr>
-        {% endfor %}
+        
     </table>
 </div>
 

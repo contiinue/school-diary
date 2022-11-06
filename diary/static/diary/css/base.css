@@ -14,3 +14,10 @@ section {
 .logo-text {
     text-decoration: none;
 }
+
+
+.logo {
+    color: red;
+    
+    width: 26%;
+}
