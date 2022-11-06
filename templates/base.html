@@ -13,18 +13,19 @@
 <body>
 
 <section>
-    <div class="nav-bar container-lg position-relative">
-        <div class="logo">
+    <div class="nav-bar container-lg d-flex justify-content-between">
+
+        <div class="logo position-right">
             <a class="logo-text h4" href="{% url 'home' %}">Электронный дневник
                 <img class="logo-image" src="{% static 'diary/images/school-svgrepo-com.svg' %}" alt="logo">
             </a>
         </div>
 
-        <div class="school-blog position-center top-0 end-0">
+        <div class="school-blog position-center">
             <a href="{% url 'blog' %}">Блог</a>
         </div>
 
-        <div class="auth-user position-absolute top-0 end-0 ">
+        <div class="auth-user position-left">
             {% if request.user.is_authenticated %}
                 {% if request.user.student %}
                     <p><a href="{% url 'student' request.user.username %}">{{request.user.username}}</a> | <a href="{% url 'logout' %}">Выйти</a></p>

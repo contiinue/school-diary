@@ -8,9 +8,6 @@ def request_teacher(view):
 
     @wraps(view)
     def _view(request, *args, **kwargs):
-        print(bool(request.user.teacher))
-        print(bool(request.user.student))
-        print(request.user.is_staff)
         if not request.user.teacher:
             raise PermissionDenied
         return view(request, *args, **kwargs)

@@ -15,7 +15,7 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
             student__learned_class__slug=self.kwargs.get('slug_name')
         )
         for i in users:
-            i.evaluation = [i.evaluation for i in
+            i.evaluation = [(i.evaluation, i.date) for i in
                             get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name)]
 
         return users
@@ -24,3 +24,7 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
 class ApiSetEvaluation(viewsets.ViewSet, generics.CreateAPIView):
     serializer_class = SetEvaluationSerializer
     permission_classes = (IsTeacherPermissions,)
+
+
+class EvaluationApi(generics.ListAPIView):
+    serializer_class = ''

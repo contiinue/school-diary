@@ -12,6 +12,7 @@ class ListArticles(ListView):
     template_name = 'blog/articles.html'
     queryset = SchoolArticle.objects.filter(is_published=True)
     context_object_name = 'school_article'
+    paginate_by = 2
 
 
 class Article(DetailView):

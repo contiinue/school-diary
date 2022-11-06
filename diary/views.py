@@ -1,10 +1,10 @@
 from django.http import HttpResponse
 from django.views.generic.base import TemplateResponseMixin
 
+from services.excel_evaluations import get_excel
 from services.get_evaluations_of_quarter import get_now_quarter, get_evaluation_of_quarter
 
 from .models import *
-from .tasks import download_excel
 from .utils import request_student, request_teacher
 from .forms import MyUserForm, NewHomeWorkForm, StudentRegistrationForm, TeacherRegistrationForm
 
@@ -200,7 +200,7 @@ class StudentsClass(ListView):
 @method_decorator(login_required(login_url='login'), name='dispatch')
 @method_decorator(request_teacher, name='dispatch')
 def download_evaluations(request, class_number, slug_name):
-    file_data = download_excel.delay(
+    file_data = get_excel(
         request.user.teacher.item.book_name, class_number, slug_name
     )
     response = HttpResponse(file_data, content_type='application/vnd.ms-excel')
