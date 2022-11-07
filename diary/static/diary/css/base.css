@@ -21,3 +21,21 @@ section {
     
     width: 26%;
 }
+
+
+.td_evaluation {
+    position: relative;
+}
+
+.input_evaluation{
+    position: absolute;
+    max-width: 25px;
+    margin: 0;
+    color: transparent;
+    text-shadow: 0 0 0 black;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+  }

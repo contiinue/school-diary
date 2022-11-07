@@ -1,42 +1,51 @@
-// let a = document.getElementById('some')
+let a = document.getElementById('table')
 
-// let storage
-
-
-// a.addEventListener('click', (elem) => {
-//   storage = elem.target.value
-//   elem.target.value = ''
-// })
+let storage
 
 
-// a.addEventListener('input', (elem) => {
-//   if (elem.target.value.length === 1) {
-//     result.innerHTML = elem.target.value
-//   }
-//   if (Number(elem.target.value) > 5 || Number(elem.target.value) <= 0 ) {
-//     elem.target.value = ''
-//   }
-//   else {
-//     elem.target.value = elem.target.value[0]
-//   }
-// })
+a.addEventListener('click', (elem) => {
+  let td = elem.target.closest("td");
+  if (!td) return;
+  storage = elem.target.innerHTML
+  elem.target.innerHTML = ''
+
+  let input = document.createElement('input')
+  input.classList.add('input_evaluation')
+  elem.target.append(input)
+  elem.target.firstChild.focus()
+})
 
 
-// a.addEventListener('focusout', (elem) => {
-//   if (!elem.target.value) {
-//     elem.target.value = storage
-//     elem.target.style.backgroundColor = 'red'
-//     setTimeout(() => {
-//       elem.target.style.backgroundColor = ''
-//     }, 1000);
-    
-//     return
-//   }
-//   elem.target.style.backgroundColor = 'green'
-//   setTimeout(() => {
-//     elem.target.style.backgroundColor = ''
-//   }, 1000);
-// })
+a.addEventListener('input', (elem) => {
+  if (elem.target.value.length === 1) {
+    elem.target.innerHTML = elem.target.value
+  }
+  if (Number(elem.target.value) > 5 || Number(elem.target.value) <= 0 ) {
+    elem.target.value = ''
+  }
+  else {
+    elem.target.value = elem.target.value[0]
+  }
+})
+
+
+a.addEventListener('focusout', (elem) => {
+  if (!elem.target.value) {
+    elem.target.parentElement.innerHTML = storage
+    elem.target.remove()
+    setTimeout(() => {
+      elem.target.parentElement.style.backgroundColor = ''
+    }, 1000);
+    return
+  }
+  
+  elem.target.parentElement.style.backgroundColor = 'green'
+  elem.target.parentElement.innerHTML = elem.target.textContent
+  elem.target.remove()
+  setTimeout(() => {
+    elem.target.parentElement.style.backgroundColor = 'red'
+  }, 1000);
+})
 
 function converDate (date) {
   return `${date.getFullYear()} ${date.getMonth()} ${date.getDate()}`
@@ -48,12 +57,12 @@ function getDates() {
   for (let i = 1; i< 30; i++) {
     let a = 0 + i
     let date = new Date(2022, 10, a)
-    elem = document.createElement('td')
+    elem = document.createElement('th')
     elem.innerHTML = date.getDate()
     elem.setAttribute('date', converDate(date))
     some_dates.push(elem)
   }
-  let avc = document.createElement('td')
+  let avc = document.createElement('th')
   avc.innerHTML = 'Итоговая оценка'
   some_dates.push(avc)
 
@@ -70,6 +79,7 @@ function getTdForTableStudents(student) {
   for (let elem of td_info_block) {
     let element_date = elem.getAttribute('date')
     let td = document.createElement('td')
+    td.classList.add('td_evaluation')
 
     for (let eval of student.evaluation) {
       let date_eval = converDate(new Date(eval[1]))
@@ -123,6 +133,25 @@ function getTableOfEvaliations() {
   getStudents() 
 
 }
+
+
+// const table = document.getElementById('table')
+
+// let value 
+
+// table.addEventListener('click', (elem) => {
+//   let input = document.createElement('input')
+//   let elem_valur = elem.target.value
+//   elem.target.value = ''
+  
+//   input.classList.add('input_evaluation')
+//   elem.target.append(input)
+// })
+
+// table.addEventListener('focusout', (elem) => {
+
+// })
+
 
 getTableOfEvaliations()
 
