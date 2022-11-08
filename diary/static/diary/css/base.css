@@ -23,17 +23,28 @@ section {
 }
 
 
-.td_evaluation {
-    position: relative;
+th {
+    text-align: center;
 }
 
-.input_evaluation{
-    position: absolute;
-    max-width: 25px;
+.td_evaluation {
+    position: relative;
+    min-width: 54px;
+    text-align: center;
+}
+
+.input_evaluation {
+    max-width: 30px;
     margin: 0;
     color: transparent;
     text-shadow: 0 0 0 black;
+    text-align: center;
 }
+
+.input_evaluation:focus {
+    border: 1px
+    /* box-shadow: 0px 0px 10px 0 rgb(69, 97, 110); */
+  }
 
 /* Firefox */
 input[type=number] {

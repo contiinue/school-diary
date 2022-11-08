@@ -15,7 +15,8 @@ class EvaluationSerializer(serializers.ModelSerializer):
 class SetEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
-        fields = '__all__'
+        fields = ('id', 'student', 'evaluation', 'item', 'quarter')
+        # read_only_fields = ('id', 'student', 'item', 'quarter')
 
 
 class SchoolTimetableSerializer(serializers.Serializer):

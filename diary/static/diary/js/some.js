@@ -29,7 +29,9 @@ a.addEventListener('input', (elem) => {
 })
 
 
-a.addEventListener('focusout', (elem) => {
+
+a.addEventListener('focusout', async (elem) => {
+  await changeEvaluation()
   if (!elem.target.value) {
     elem.target.parentElement.innerHTML = storage
     elem.target.remove()
@@ -38,27 +40,38 @@ a.addEventListener('focusout', (elem) => {
     }, 1000);
     return
   }
-  
-  elem.target.parentElement.style.backgroundColor = 'green'
   elem.target.parentElement.innerHTML = elem.target.textContent
   elem.target.remove()
-  setTimeout(() => {
-    elem.target.parentElement.style.backgroundColor = 'red'
-  }, 1000);
 })
+
+async function changeEvaluation(pk) {
+  alert(1)
+  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${11}/`, {
+    method: 'POST',
+    body: {
+      "id": 11,
+      "student": 2,
+      "evaluation": 5,
+      "item": 1,
+      "quarter": 1
+  }
+  })
+}
+
 
 function converDate (date) {
   return `${date.getFullYear()} ${date.getMonth()} ${date.getDate()}`
 } 
 
 
-function getDates() {
+async function getDates() {
   let some_dates = Array()
   let link = window.location.href.split('/').slice(4, 6)
-  let r = fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}/`).then((response) => {response.json().then((s) => {console.log()})})
-  for (let i = 1; i< 30; i++) {
-    let a = 0 + i
-    let date = new Date(2022, 10, a)
+  let r = await fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}/`)
+  let response = await r.json()
+
+  for (let i of response.dates) {
+    let date = new Date(i)
     elem = document.createElement('th')
     elem.innerHTML = date.getDate()
     elem.setAttribute('date', converDate(date))
@@ -83,20 +96,23 @@ function getTdForTableStudents(student) {
     let element_date = elem.getAttribute('date')
     let td = document.createElement('td')
     td.classList.add('td_evaluation')
-
-    for (let eval of student.evaluation) {
-      let date_eval = converDate(new Date(eval[1]))
-
-      if (date_eval == element_date) {
-        td.innerHTML += eval[0]
+    
+    if (student.evaluation) {
+      for (let eval of student.evaluation) {
+        let date_eval = converDate(new Date(eval[2]))
+  
+        if (date_eval == element_date) {
+          td.setAttribute('pk', eval[0])
+          td.innerHTML += eval[1]
+        }
       }
-      fragment.push(td)
     }
+    fragment.push(td)
+
   if (td.textContent.length > 1) {
     
   }
-
-  }
+}
 
   fio = document.createElement('th')
   fio.innerHTML = `${student.first_name} ${student.last_name}`
@@ -128,9 +144,9 @@ async function getStudents() {
 
 }
 
-function getTableOfEvaliations() {
+async function getTableOfEvaliations() {
   let tr = document.getElementById('info_block_for_evaluations')
-  let dates = getDates()
+  let dates = await getDates()
   for (let elem of dates) {
     tr.append(elem) 
   }

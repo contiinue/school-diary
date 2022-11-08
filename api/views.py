@@ -1,4 +1,5 @@
 from rest_framework import generics, viewsets
+from rest_framework.mixins import UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -19,12 +20,12 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
             student__learned_class__slug=self.kwargs.get('slug_name')
         )
         for i in users:
-            i.evaluation = [(i.evaluation, i.date) for i in
+            i.evaluation = [(i.pk, i.evaluation, i.date) for i in
                             get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name)]
         return users
 
 
-class ApiSetEvaluation(viewsets.ViewSet, generics.CreateAPIView):
+class ApiSetEvaluation(viewsets.ViewSet, generics.CreateAPIView, UpdateModelMixin):
     serializer_class = SetEvaluationSerializer
     permission_classes = (IsTeacherPermissions,)
 
@@ -49,4 +50,4 @@ class SchoolTimetableApi(APIView):
     def get_days_of_quarter(start: date, end: date, week_day: list) -> list[str]:
         total_days: int = (end - start).days + 1
         all_days = [start + timedelta(days=day) for day in range(total_days)]
-        return [day.strftime('%Y %d %m') for day in all_days if day.weekday() in week_day]
+        return [day.strftime('%Y-%m-%d') for day in all_days if day.weekday() in week_day]
