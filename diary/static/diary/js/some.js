@@ -54,6 +54,8 @@ function converDate (date) {
 
 function getDates() {
   let some_dates = Array()
+  let link = window.location.href.split('/').slice(4, 6)
+  let r = fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}/`).then((response) => {response.json().then((s) => {console.log()})})
   for (let i = 1; i< 30; i++) {
     let a = 0 + i
     let date = new Date(2022, 10, a)
@@ -62,6 +64,7 @@ function getDates() {
     elem.setAttribute('date', converDate(date))
     some_dates.push(elem)
   }
+
   let avc = document.createElement('th')
   avc.innerHTML = 'Итоговая оценка'
   some_dates.push(avc)
@@ -95,7 +98,7 @@ function getTdForTableStudents(student) {
 
   }
 
-  fio = document.createElement('td')
+  fio = document.createElement('th')
   fio.innerHTML = `${student.first_name} ${student.last_name}`
   fragment.unshift(fio)
 
@@ -107,6 +110,7 @@ async function getStudents() {
   let link = window.location.href.split('/').slice(4, 6)
   let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${link[0]}/${link[1]}/`)
   let students = await r.json()
+  console.log(students)
 
   let td_students_evals = students.forEach((student) => {
     const fragment_tr = document.createDocumentFragment();
@@ -133,24 +137,6 @@ function getTableOfEvaliations() {
   getStudents() 
 
 }
-
-
-// const table = document.getElementById('table')
-
-// let value 
-
-// table.addEventListener('click', (elem) => {
-//   let input = document.createElement('input')
-//   let elem_valur = elem.target.value
-//   elem.target.value = ''
-  
-//   input.classList.add('input_evaluation')
-//   elem.target.append(input)
-// })
-
-// table.addEventListener('focusout', (elem) => {
-
-// })
 
 
 getTableOfEvaliations()

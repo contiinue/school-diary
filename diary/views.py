@@ -136,9 +136,9 @@ class Student(ListView):
         qs = super().get_queryset()
         evaluations = dict()
         for book in qs:
-            evaluations[book.book.book_name] = get_evaluation_of_quarter(
+            evaluations[book.time_table.book_name] = get_evaluation_of_quarter(
                 self.request.user,
-                book.book.book_name,
+                book.time_table.book_name,
                 self.request.GET.get('quarter')
             )
         return evaluations
