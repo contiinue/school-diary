@@ -108,7 +108,8 @@ async function getDates() {
   let response = await r.json()
 
   for (let i of response.dates) {
-    
+    let date_new = i.split()
+    console.log(date_new)
     let date = new Date(i)
     elem = document.createElement('th')
     elem.innerHTML = date.getDate()
