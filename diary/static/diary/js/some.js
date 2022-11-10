@@ -28,39 +28,76 @@ a.addEventListener('input', (elem) => {
   }
 })
 
+a.addEventListener('mouseover', (elem) => {
+  if (elem.target.tagName == 'TD') {
+    elem.target.style.backgroundColor = '#e0e0e0'
+  }
+})
 
+a.addEventListener('mouseout', (elem) => {
+  elem.target.style.backgroundColor = ''
+})
 
 a.addEventListener('focusout', async (elem) => {
-  await changeEvaluation()
+  
   if (!elem.target.value) {
     elem.target.parentElement.innerHTML = storage
     elem.target.remove()
-    setTimeout(() => {
-      elem.target.parentElement.style.backgroundColor = ''
-    }, 1000);
     return
   }
+  let date = elem.target.parentElement.getAttribute('date')
+  let student_id = elem.target.parentElement.parentElement.children[0].getAttribute('student-id')
   elem.target.parentElement.innerHTML = elem.target.textContent
-  elem.target.remove()
+  setEvaluation(student_id, elem.target.textContent, date)
 })
 
+async function setEvaluation(student_id, evaluation, date) {
+  let data = getData(student_id, evaluation, date)
+  let headers = getHeadets()
+  fetch('http://127.0.0.1:8000/api/evaluation/', {
+    method: 'post',
+    body: data,
+    headers: headers,
+    })
+}
+
+function getHeadets() {
+  let headers = new Headers();
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let csrf_token = decodedCookie.split(';')[0];
+  headers.append('X-CSRFToken', csrf_token.split('=')[1]);
+  return headers
+}
+
+function getData(student_id, evaluation, date){
+  let data = new FormData();
+  data.append("evaluation", evaluation)
+  data.append('date', date)
+  data.append('student', student_id)
+  return data
+}
+
 async function changeEvaluation(pk) {
-  alert(1)
-  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${11}/`, {
-    method: 'POST',
-    body: {
-      "id": 11,
-      "student": 2,
-      "evaluation": 5,
-      "item": 1,
-      "quarter": 1
-  }
-  })
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(';')[0];
+  let data = new FormData();
+  data.append("student", 4)
+  data.append("evaluation", 2)
+  data.append("quarter", 1)
+  data.append('date', '2022-11-7')
+  let headers = new Headers();
+  headers.append('X-CSRFToken', ca.split('=')[1]);
+  fetch(`http://127.0.0.1:8000/api/evaluation/`, {
+      method: 'post',
+      body: data,
+      headers: headers,
+})
+ 
 }
 
 
 function converDate (date) {
-  return `${date.getFullYear()} ${date.getMonth()} ${date.getDate()}`
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
 } 
 
 
@@ -71,6 +108,7 @@ async function getDates() {
   let response = await r.json()
 
   for (let i of response.dates) {
+    
     let date = new Date(i)
     elem = document.createElement('th')
     elem.innerHTML = date.getDate()
@@ -96,6 +134,7 @@ function getTdForTableStudents(student) {
     let element_date = elem.getAttribute('date')
     let td = document.createElement('td')
     td.classList.add('td_evaluation')
+    td.setAttribute('date', element_date)
     
     if (student.evaluation) {
       for (let eval of student.evaluation) {
@@ -116,6 +155,7 @@ function getTdForTableStudents(student) {
 
   fio = document.createElement('th')
   fio.innerHTML = `${student.first_name} ${student.last_name}`
+  fio.setAttribute('student-id', student.id)
   fragment.unshift(fio)
 
 

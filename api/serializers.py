@@ -15,11 +15,8 @@ class EvaluationSerializer(serializers.ModelSerializer):
 class SetEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
-        fields = ('id', 'student', 'evaluation', 'item', 'quarter')
-        # read_only_fields = ('id', 'student', 'item', 'quarter')
+        fields = ('id', 'student', 'evaluation', 'item', 'quarter', 'date')
 
 
 class SchoolTimetableSerializer(serializers.Serializer):
     some = serializers.CharField(max_length=30)
-
-

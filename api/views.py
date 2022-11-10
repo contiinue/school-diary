@@ -1,12 +1,12 @@
-from rest_framework import generics, viewsets
-from rest_framework.mixins import UpdateModelMixin
+from rest_framework import generics, viewsets, status, views
+from rest_framework.mixins import UpdateModelMixin, CreateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.my_permissions import IsTeacherPermissions
-from api.serializers import EvaluationSerializer, SetEvaluationSerializer, SchoolTimetableSerializer
+from api.serializers import EvaluationSerializer, SetEvaluationSerializer
 from services.get_evaluations_of_quarter import get_evaluation_of_quarter, get_now_quarter
-from diary.models import MyUser, Quarter, BookWithClass
+from diary.models import MyUser, Quarter, BookWithClass, Evaluation
 from datetime import date, timedelta
 
 
@@ -25,9 +25,22 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
         return users
 
 
-class ApiSetEvaluation(viewsets.ViewSet, generics.CreateAPIView, UpdateModelMixin):
+class ApiSetEvaluation(UpdateModelMixin, CreateModelMixin, generics.GenericAPIView):
     serializer_class = SetEvaluationSerializer
-    permission_classes = (IsTeacherPermissions,)
+    queryset = Evaluation.objects.all()
+
+    def post(self, request, *args, **kwargs):
+        my_request = request.POST.copy()
+        my_request.setdefault('item', self.request.user.teacher.item.pk)
+        my_request.setdefault('quarter', get_now_quarter().pk)
+        serializer = self.serializer_class(data=my_request)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, args, kwargs)
 
 
 class SchoolTimetableApi(APIView):

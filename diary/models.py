@@ -138,10 +138,10 @@ class Evaluation(models.Model):
         (5, 5),
     ]
     student = models.ForeignKey(MyUser, blank=True, on_delete=models.CASCADE)
-    item = models.ForeignKey(Books, on_delete=models.CASCADE)
+    item = models.ForeignKey(Books, on_delete=models.CASCADE, blank=True)
     evaluation = models.IntegerField(choices=eval)
     quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, blank=True)
-    date = models.DateField(auto_now=True)
+    date = models.DateField()
 
     def get_quarter(self):
         return self.evaluation, self.date

@@ -39,6 +39,7 @@ th {
     color: transparent;
     text-shadow: 0 0 0 black;
     text-align: center;
+    color: #e0e0e0;
 }
 
 .input_evaluation:focus {
