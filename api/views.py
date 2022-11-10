@@ -1,12 +1,12 @@
-from rest_framework import generics, viewsets, status, views
-from rest_framework.mixins import UpdateModelMixin, CreateModelMixin
+from rest_framework import generics, viewsets, status
+from rest_framework import mixins
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.my_permissions import IsTeacherPermissions
 from api.serializers import EvaluationSerializer, SetEvaluationSerializer
 from services.get_evaluations_of_quarter import get_evaluation_of_quarter, get_now_quarter
-from diary.models import MyUser, Quarter, BookWithClass, Evaluation
+from diary.models import MyUser, BookWithClass, Evaluation
 from datetime import date, timedelta
 
 
@@ -25,15 +25,18 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
         return users
 
 
-class ApiSetEvaluation(UpdateModelMixin, CreateModelMixin, generics.GenericAPIView):
+class ApiSetEvaluation(mixins.UpdateModelMixin,
+                       mixins.CreateModelMixin,
+                       mixins.DestroyModelMixin,
+                       generics.GenericAPIView,
+                       viewsets.ViewSet):
     serializer_class = SetEvaluationSerializer
     queryset = Evaluation.objects.all()
 
     def post(self, request, *args, **kwargs):
-        my_request = request.POST.copy()
-        my_request.setdefault('item', self.request.user.teacher.item.pk)
-        my_request.setdefault('quarter', get_now_quarter().pk)
-        serializer = self.serializer_class(data=my_request)
+        serializer = self.serializer_class(
+            data=self.get_data(request)
+        )
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
@@ -41,6 +44,15 @@ class ApiSetEvaluation(UpdateModelMixin, CreateModelMixin, generics.GenericAPIVi
 
     def put(self, request, *args, **kwargs):
         return self.update(request, args, kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return self.destroy(request, args, kwargs)
+
+    def get_data(self, request) -> dict:
+        my_request = request.POST.copy()
+        my_request.setdefault('item', self.request.user.teacher.item.pk)
+        my_request.setdefault('quarter', get_now_quarter().pk)
+        return my_request
 
 
 class SchoolTimetableApi(APIView):

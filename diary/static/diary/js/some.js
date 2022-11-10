@@ -41,15 +41,21 @@ a.addEventListener('mouseout', (elem) => {
 a.addEventListener('focusout', async (elem) => {
   
   if (!elem.target.value) {
+    if (!storage) {
+      await deleteEvaluation(student_id)
+    }
     elem.target.parentElement.innerHTML = storage
     elem.target.remove()
+    storage = ''
     return
   }
   let date = elem.target.parentElement.getAttribute('date')
   let student_id = elem.target.parentElement.parentElement.children[0].getAttribute('student-id')
   elem.target.parentElement.innerHTML = elem.target.textContent
-  setEvaluation(student_id, elem.target.textContent, date)
+  await setEvaluation(student_id, elem.target.textContent, date)
+  storage = ''
 })
+
 
 async function setEvaluation(student_id, evaluation, date) {
   let data = getData(student_id, evaluation, date)
@@ -57,6 +63,14 @@ async function setEvaluation(student_id, evaluation, date) {
   fetch('http://127.0.0.1:8000/api/evaluation/', {
     method: 'post',
     body: data,
+    headers: headers,
+    })
+}
+
+async function deleteEvaluation(pk) {
+  let headers = getHeadets()
+  fetch('http://127.0.0.1:8000/api/evaluation/', {
+    method: 'post',
     headers: headers,
     })
 }
@@ -70,9 +84,14 @@ function getHeadets() {
 }
 
 function getData(student_id, evaluation, date){
+  let old_date = date.split('-')
+  let month = Number(old_date[1]) + 1
+  let day = Number(old_date[2]) 
+  let new_date = converDate(new Date(old_date[0], String(month), String(day)))
+  console.log(new_date)
   let data = new FormData();
   data.append("evaluation", evaluation)
-  data.append('date', date)
+  data.append('date', new_date)
   data.append('student', student_id)
   return data
 }
@@ -108,8 +127,6 @@ async function getDates() {
   let response = await r.json()
 
   for (let i of response.dates) {
-    let date_new = i.split()
-    console.log(date_new)
     let date = new Date(i)
     elem = document.createElement('th')
     elem.innerHTML = date.getDate()
