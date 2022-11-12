@@ -86,18 +86,37 @@ class Books(models.Model):
         return self.book_name
 
 
+class DayOfWeak(models.Model):
+    week_day = models.CharField(max_length=30)
+
+    def number_of_week_day(self):
+        days = {
+            'Понедельник': 0, 'Вторник': 1,
+            'Среда': 2, 'Четверг': 3,
+            'Пятница': 4, 'Суббота': 5, 'Воскресенье': 6
+        }
+        return days[self.week_day]
+
+    def __str__(self):
+        return self.week_day
+
+
 class SchoolTimetable(models.Model):
-    pass
+    item = models.ForeignKey(Books, on_delete=models.PROTECT)
+    lesson_date = models.ManyToManyField(DayOfWeak)
+
+    def __str__(self):
+        return f'Предмет: {self.item} День недели: {self.lesson_date}'
 
 
 class BookWithClass(models.Model):
     """ base book for student class, it was done for flexibility  """
 
-    book = models.ForeignKey(Books, on_delete=models.CASCADE, null=True)
+    time_table = models.ForeignKey(SchoolTimetable, on_delete=models.CASCADE)
     student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return '{}{} {}'.format(self.student_class.number_class, self.student_class.name_class, self.book.book_name)
+        return '{} - {}'.format(self.student_class.number_class, self.student_class.name_class)
 
 
 class Quarter(models.Model):
@@ -119,10 +138,10 @@ class Evaluation(models.Model):
         (5, 5),
     ]
     student = models.ForeignKey(MyUser, blank=True, on_delete=models.CASCADE)
-    item = models.ForeignKey(Books, on_delete=models.CASCADE)
+    item = models.ForeignKey(Books, on_delete=models.CASCADE, blank=True)
     evaluation = models.IntegerField(choices=eval)
     quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, blank=True)
-    date = models.DateField(auto_now=True)
+    date = models.DateField()
 
     def get_quarter(self):
         return self.evaluation, self.date

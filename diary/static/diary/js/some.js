@@ -1,59 +1,139 @@
-// let a = document.getElementById('some')
+let a = document.getElementById('table')
 
-// let storage
-
-
-// a.addEventListener('click', (elem) => {
-//   storage = elem.target.value
-//   elem.target.value = ''
-// })
+let storage
 
 
-// a.addEventListener('input', (elem) => {
-//   if (elem.target.value.length === 1) {
-//     result.innerHTML = elem.target.value
-//   }
-//   if (Number(elem.target.value) > 5 || Number(elem.target.value) <= 0 ) {
-//     elem.target.value = ''
-//   }
-//   else {
-//     elem.target.value = elem.target.value[0]
-//   }
-// })
+a.addEventListener('click', (elem) => {
+  let td = elem.target.closest("td");
+  if (!td) return;
+  storage = elem.target.textContent
+  elem.target.innerHTML = ''
+
+  let input = document.createElement('input')
+  input.value = storage
+  input.classList.add('input_evaluation')
+  
+  elem.target.append(input)
+  elem.target.firstChild.focus()
+})
 
 
-// a.addEventListener('focusout', (elem) => {
-//   if (!elem.target.value) {
-//     elem.target.value = storage
-//     elem.target.style.backgroundColor = 'red'
-//     setTimeout(() => {
-//       elem.target.style.backgroundColor = ''
-//     }, 1000);
+a.addEventListener('input', (elem) => {
+  if (elem.target.value.length > 1) {
+    elem.target.value = elem.target.value[1]
+  }
+
+  if (Number(elem.target.value) > 5 || Number(elem.target.value) <= 0 ) {
+    elem.target.value = ''
+  }
+  
+  else {
+    elem.target.value = elem.target.value[0]
+  }
+})
+
+
+a.addEventListener('focusout', async (elem) => {
+  const childs = elem.target.parentElement.parentElement
+  let date = elem.target.parentElement.getAttribute('date')
+  let pk = elem.target.parentElement.getAttribute('pk')
+  let student_id = elem.target.parentElement.parentElement.firstChild.getAttribute('student-id')
+  // let student_id = elem.target.parentElement.parentElement.children[0].getAttribute('student-id')
+
+  if (!storage && elem.target.value) {
+    await setEvaluation(student_id, elem.target.value, date, elem)
+    elem.target.parentElement.textContent = elem.target.value
     
-//     return
-//   }
-//   elem.target.style.backgroundColor = 'green'
-//   setTimeout(() => {
-//     elem.target.style.backgroundColor = ''
-//   }, 1000);
-// })
+  } 
+  else if (elem.target.value && elem.target.value != storage && storage) {
+    elem.target.parentElement.textContent = elem.target.value
+    await updateEvaluation(pk, elem.target.value, date)
+    
+  } 
+  else if (!elem.target.value && storage) {
+    await deleteEvaluation(pk)
+    elem.target.remove()
+  }
+  else if (elem.target.value == storage) {
+    elem.target.parentElement.innerHTML = storage
+  }
+  childs.lastChild.replaceWith(getAverageEvaluation(childs.children))
+  storage = ''
+})
+
+async function updateEvaluation(pk, evaluation, date) {
+  let data = getData(pk, evaluation, date, true)
+  let headers = getHeadets()
+  await fetch(`http://127.0.0.1:8000/api/evaluation/${pk}/`, {
+    method: 'PUT',
+    body: data,
+    headers: headers,
+    })
+}
+
+
+async function setEvaluation(student_id, evaluation, date, elem) {
+  let data = getData(student_id, evaluation, date)
+  let headers = getHeadets()
+  let response = await fetch('http://127.0.0.1:8000/api/evaluation/set_evaluation/', {
+    method: 'post',
+    body: data,
+    headers: headers,
+    })
+  let json_parse = await response.json()
+  elem.target.parentElement.setAttribute('pk', json_parse.id)
+}
+
+async function deleteEvaluation(pk) {
+  let headers = getHeadets()
+  await fetch(`http://127.0.0.1:8000/api/evaluation/${pk}`, {
+    method: 'delete',
+    headers: headers,
+    })
+}
+
+function getHeadets() {
+  let headers = new Headers();
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let csrf_token = decodedCookie.split(';')[0];
+  headers.append('X-CSRFToken', csrf_token.split('=')[1]);
+  return headers
+}
+
+function getData(student_id, evaluation, date, update = false){
+  let old_date = date.split('-')
+  let month = Number(old_date[1]) + 1
+  let day = Number(old_date[2]) 
+  let new_date = converDate(new Date(old_date[0], String(month), String(day)))
+  let data = new FormData();
+  data.append("evaluation", evaluation)
+  data.append('date', new_date)
+  if (!update) {
+    data.append('student', student_id)
+  }
+  return data
+}
 
 function converDate (date) {
-  return `${date.getFullYear()} ${date.getMonth()} ${date.getDate()}`
+  return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
 } 
 
 
-function getDates() {
+async function getDates() {
   let some_dates = Array()
-  for (let i = 1; i< 30; i++) {
-    let a = 0 + i
-    let date = new Date(2022, 10, a)
-    elem = document.createElement('td')
+  let link = window.location.href.split('/').slice(4, 6)
+  let r = await fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}/`)
+  let response = await r.json()
+
+  for (let i of response.dates) {
+    let date = new Date(i)
+    elem = document.createElement('th')
     elem.innerHTML = date.getDate()
     elem.setAttribute('date', converDate(date))
     some_dates.push(elem)
   }
-  let avc = document.createElement('td')
+
+  let avc = document.createElement('th')
   avc.innerHTML = 'Итоговая оценка'
   some_dates.push(avc)
 
@@ -61,44 +141,59 @@ function getDates() {
 }
 
 
+function getAverageEvaluation (array_evaluations) {
+  let summ = Number()
+  let len = Number()
+  for (let elem of array_evaluations) {
+    if (elem.textContent && isNaN(elem.textContent) == false) {
+      summ += Number(elem.textContent)
+      len += 1
+    }
+  }
+  let average_evaluation = document.createElement('th')
+  average_evaluation.innerHTML = (summ / len).toFixed(2)
+  return average_evaluation
+}
 
 function getTdForTableStudents(student) {
   const fragment = Array();
   const td_info_block = Array.from(document.getElementById('info_block_for_evaluations').children).slice(1, -1)
 
-
   for (let elem of td_info_block) {
     let element_date = elem.getAttribute('date')
     let td = document.createElement('td')
-
-    for (let eval of student.evaluation) {
-      let date_eval = converDate(new Date(eval[1]))
-
-      if (date_eval == element_date) {
-        td.innerHTML += eval[0]
-      }
-      fragment.push(td)
-    }
-  if (td.textContent.length > 1) {
+    td.classList.add('td_evaluation')
+    td.setAttribute('date', element_date)
     
-  }
+    if (student.evaluation) {
+      for (let eval of student.evaluation) {
+        let date_eval = converDate(new Date(eval[2]))
+  
+        if (date_eval == element_date) {
+          td.setAttribute('pk', eval[0])
+          td.innerHTML += eval[1]
+        }
+      }
+    }
+    fragment.push(td)
+}
 
-  }
-
-  fio = document.createElement('td')
+  fio = document.createElement('th')
   fio.innerHTML = `${student.first_name} ${student.last_name}`
+  fio.setAttribute('student-id', student.id)
   fragment.unshift(fio)
 
-
+  fragment.push(getAverageEvaluation(fragment))
   return fragment
 }
 
 async function getStudents() {
   let link = window.location.href.split('/').slice(4, 6)
-  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${link[0]}/${link[1]}/`)
+  // let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${link[0]}/${link[1]}/`)
+  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/get_evaluations/?slug_name=${link[1]}&class_number=${link[0]}`)
   let students = await r.json()
 
-  let td_students_evals = students.forEach((student) => {
+  students.forEach((student) => {
     const fragment_tr = document.createDocumentFragment();
     
     const tr = document.createElement('tr')
@@ -114,15 +209,16 @@ async function getStudents() {
 
 }
 
-function getTableOfEvaliations() {
+async function getTableOfEvaliations() {
   let tr = document.getElementById('info_block_for_evaluations')
-  let dates = getDates()
+  let dates = await getDates()
   for (let elem of dates) {
     tr.append(elem) 
   }
   getStudents() 
 
 }
+
 
 getTableOfEvaliations()
 

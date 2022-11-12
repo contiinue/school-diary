@@ -14,5 +14,7 @@ admin.site.register(Evaluation)
 admin.site.register(SchoolClass, SchoolClassAdmin)
 admin.site.register(BookWithClass)
 admin.site.register(Quarter)
+admin.site.register(SchoolTimetable)
+admin.site.register(DayOfWeak)
 
 # Register your models here.
