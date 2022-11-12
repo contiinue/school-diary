@@ -189,7 +189,8 @@ function getTdForTableStudents(student) {
 
 async function getStudents() {
   let link = window.location.href.split('/').slice(4, 6)
-  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${link[0]}/${link[1]}/`)
+  // let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${link[0]}/${link[1]}/`)
+  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/get_evaluations/?slug_name=${link[1]}&class_number=${link[0]}`)
   let students = await r.json()
 
   students.forEach((student) => {

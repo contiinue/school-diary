@@ -47,6 +47,7 @@ th {
 
 .input_evaluation {
     max-width: 35px;
+    max-height: 40px;
     color: transparent;
     text-shadow: 0 0 0 black;
     text-align: center;

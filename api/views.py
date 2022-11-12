@@ -26,10 +26,16 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
         return users
 
 
-class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin):
+class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
+                       mixins.UpdateModelMixin, mixins.ListModelMixin):
+
     serializer_class = SetEvaluationSerializer
     permission_classes = (IsTeacherPermissions,)
     queryset = Evaluation.objects.all()
+
+    @action(url_path='get_evaluations', detail=False, methods=['get'])
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
 
     @action(url_path='set_evaluation', detail=False)
     def post(self, request, *args, **kwargs):
@@ -53,9 +59,26 @@ class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins
         my_request.setdefault('quarter', get_now_quarter().pk)
         return my_request
 
+    def get_serializer(self, *args, **kwargs):
+        if self.request.GET:
+            kwargs.setdefault('context', self.get_serializer_context())
+            return EvaluationSerializer(*args, **kwargs)
+        return super(ApiSetEvaluation, self).get_serializer(*args, **kwargs)
+
+    def get_queryset(self):
+        if self.request.GET:
+            users = MyUser.objects.filter(
+                student__learned_class__number_class=self.request.GET.get('class_number'),
+                student__learned_class__slug=self.request.GET.get('slug_name')
+            )
+            for i in users:
+                i.evaluation = [(i.pk, i.evaluation, i.date) for i in
+                                get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name)]
+            return users
+        return super(ApiSetEvaluation, self).get_queryset()
+
 
 class SchoolTimetableApi(APIView):
-
     def get(self, request, *args, **kwargs):
         return Response({'dates': self.get_queryset()})
 
