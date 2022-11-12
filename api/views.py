@@ -1,5 +1,6 @@
-from rest_framework import generics, viewsets, status
+from rest_framework import generics, viewsets
 from rest_framework import mixins
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -25,22 +26,20 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
         return users
 
 
-class ApiSetEvaluation(mixins.UpdateModelMixin,
-                       mixins.CreateModelMixin,
-                       mixins.DestroyModelMixin,
-                       generics.GenericAPIView,
-                       viewsets.ViewSet):
+class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin, mixins.UpdateModelMixin):
     serializer_class = SetEvaluationSerializer
+    permission_classes = (IsTeacherPermissions,)
     queryset = Evaluation.objects.all()
 
+    @action(url_path='set_evaluation', detail=False)
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
             data=self.get_data(request)
         )
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data)
+        return Response({'invalid data': False})
 
     def put(self, request, *args, **kwargs):
         return self.update(request, args, kwargs)

@@ -6,71 +6,88 @@ let storage
 a.addEventListener('click', (elem) => {
   let td = elem.target.closest("td");
   if (!td) return;
-  storage = elem.target.innerHTML
+  storage = elem.target.textContent
   elem.target.innerHTML = ''
 
   let input = document.createElement('input')
+  input.value = storage
   input.classList.add('input_evaluation')
+  
   elem.target.append(input)
   elem.target.firstChild.focus()
 })
 
 
 a.addEventListener('input', (elem) => {
-  if (elem.target.value.length === 1) {
-    elem.target.innerHTML = elem.target.value
+  if (elem.target.value.length > 1) {
+    elem.target.value = elem.target.value[1]
   }
+
   if (Number(elem.target.value) > 5 || Number(elem.target.value) <= 0 ) {
     elem.target.value = ''
   }
+  
   else {
     elem.target.value = elem.target.value[0]
   }
 })
 
-a.addEventListener('mouseover', (elem) => {
-  if (elem.target.tagName == 'TD') {
-    elem.target.style.backgroundColor = '#e0e0e0'
-  }
-})
-
-a.addEventListener('mouseout', (elem) => {
-  elem.target.style.backgroundColor = ''
-})
 
 a.addEventListener('focusout', async (elem) => {
-  
-  if (!elem.target.value) {
-    if (!storage) {
-      await deleteEvaluation(student_id)
-    }
-    elem.target.parentElement.innerHTML = storage
-    elem.target.remove()
-    storage = ''
-    return
-  }
+  const childs = elem.target.parentElement.parentElement
   let date = elem.target.parentElement.getAttribute('date')
-  let student_id = elem.target.parentElement.parentElement.children[0].getAttribute('student-id')
-  elem.target.parentElement.innerHTML = elem.target.textContent
-  await setEvaluation(student_id, elem.target.textContent, date)
+  let pk = elem.target.parentElement.getAttribute('pk')
+  let student_id = elem.target.parentElement.parentElement.firstChild.getAttribute('student-id')
+  // let student_id = elem.target.parentElement.parentElement.children[0].getAttribute('student-id')
+
+  if (!storage && elem.target.value) {
+    await setEvaluation(student_id, elem.target.value, date, elem)
+    elem.target.parentElement.textContent = elem.target.value
+    
+  } 
+  else if (elem.target.value && elem.target.value != storage && storage) {
+    elem.target.parentElement.textContent = elem.target.value
+    await updateEvaluation(pk, elem.target.value, date)
+    
+  } 
+  else if (!elem.target.value && storage) {
+    await deleteEvaluation(pk)
+    elem.target.remove()
+  }
+  else if (elem.target.value == storage) {
+    elem.target.parentElement.innerHTML = storage
+  }
+  childs.lastChild.replaceWith(getAverageEvaluation(childs.children))
   storage = ''
 })
 
-
-async function setEvaluation(student_id, evaluation, date) {
-  let data = getData(student_id, evaluation, date)
+async function updateEvaluation(pk, evaluation, date) {
+  let data = getData(pk, evaluation, date, true)
   let headers = getHeadets()
-  fetch('http://127.0.0.1:8000/api/evaluation/', {
-    method: 'post',
+  await fetch(`http://127.0.0.1:8000/api/evaluation/${pk}/`, {
+    method: 'PUT',
     body: data,
     headers: headers,
     })
 }
 
+
+async function setEvaluation(student_id, evaluation, date, elem) {
+  let data = getData(student_id, evaluation, date)
+  let headers = getHeadets()
+  let response = await fetch('http://127.0.0.1:8000/api/evaluation/set_evaluation/', {
+    method: 'post',
+    body: data,
+    headers: headers,
+    })
+  let json_parse = await response.json()
+  elem.target.parentElement.setAttribute('pk', json_parse.id)
+}
+
 async function deleteEvaluation(pk) {
   let headers = getHeadets()
-  fetch('http://127.0.0.1:8000/api/evaluation/', {
-    method: 'post',
+  await fetch(`http://127.0.0.1:8000/api/evaluation/${pk}`, {
+    method: 'delete',
     headers: headers,
     })
 }
@@ -83,37 +100,19 @@ function getHeadets() {
   return headers
 }
 
-function getData(student_id, evaluation, date){
+function getData(student_id, evaluation, date, update = false){
   let old_date = date.split('-')
   let month = Number(old_date[1]) + 1
   let day = Number(old_date[2]) 
   let new_date = converDate(new Date(old_date[0], String(month), String(day)))
-  console.log(new_date)
   let data = new FormData();
   data.append("evaluation", evaluation)
   data.append('date', new_date)
-  data.append('student', student_id)
+  if (!update) {
+    data.append('student', student_id)
+  }
   return data
 }
-
-async function changeEvaluation(pk) {
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(';')[0];
-  let data = new FormData();
-  data.append("student", 4)
-  data.append("evaluation", 2)
-  data.append("quarter", 1)
-  data.append('date', '2022-11-7')
-  let headers = new Headers();
-  headers.append('X-CSRFToken', ca.split('=')[1]);
-  fetch(`http://127.0.0.1:8000/api/evaluation/`, {
-      method: 'post',
-      body: data,
-      headers: headers,
-})
- 
-}
-
 
 function converDate (date) {
   return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
@@ -142,11 +141,23 @@ async function getDates() {
 }
 
 
+function getAverageEvaluation (array_evaluations) {
+  let summ = Number()
+  let len = Number()
+  for (let elem of array_evaluations) {
+    if (elem.textContent && isNaN(elem.textContent) == false) {
+      summ += Number(elem.textContent)
+      len += 1
+    }
+  }
+  let average_evaluation = document.createElement('th')
+  average_evaluation.innerHTML = (summ / len).toFixed(2)
+  return average_evaluation
+}
 
 function getTdForTableStudents(student) {
   const fragment = Array();
   const td_info_block = Array.from(document.getElementById('info_block_for_evaluations').children).slice(1, -1)
-
 
   for (let elem of td_info_block) {
     let element_date = elem.getAttribute('date')
@@ -165,10 +176,6 @@ function getTdForTableStudents(student) {
       }
     }
     fragment.push(td)
-
-  if (td.textContent.length > 1) {
-    
-  }
 }
 
   fio = document.createElement('th')
@@ -176,7 +183,7 @@ function getTdForTableStudents(student) {
   fio.setAttribute('student-id', student.id)
   fragment.unshift(fio)
 
-
+  fragment.push(getAverageEvaluation(fragment))
   return fragment
 }
 
@@ -184,9 +191,8 @@ async function getStudents() {
   let link = window.location.href.split('/').slice(4, 6)
   let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${link[0]}/${link[1]}/`)
   let students = await r.json()
-  console.log(students)
 
-  let td_students_evals = students.forEach((student) => {
+  students.forEach((student) => {
     const fragment_tr = document.createDocumentFragment();
     
     const tr = document.createElement('tr')
