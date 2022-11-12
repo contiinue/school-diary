@@ -28,7 +28,6 @@ class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
 
 class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
                        mixins.UpdateModelMixin, mixins.ListModelMixin):
-
     serializer_class = SetEvaluationSerializer
     permission_classes = (IsTeacherPermissions,)
     queryset = Evaluation.objects.all()

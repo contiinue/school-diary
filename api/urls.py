@@ -1,6 +1,6 @@
 from rest_framework import routers
 from django.urls import path, include
-from .views import ApiEvaluation, ApiSetEvaluation, SchoolTimetableApi
+from .views import ApiSetEvaluation, SchoolTimetableApi
 
 router = routers.DefaultRouter()
 router.register('evaluation', ApiSetEvaluation, basename='evaluation')
