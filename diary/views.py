@@ -166,35 +166,12 @@ class Teacher(FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['model'] = SchoolClass.objects.all()
+        print(context)
         return context
 
 
-class StudentsClass(ListView):
+class StudentsClass(TemplateView):
     template_name = 'diary/student_class.html'
-    model = MyUser
-    context_object_name = 'evaluations_with_name_user'
-
-    def get_queryset(self):
-        self.queryset = MyUser.objects.filter(
-            student__learned_class__number_class=self.kwargs.get('class_number'),
-            student__learned_class__slug=self.kwargs.get('slug_name')
-        )
-        queryset = super().get_queryset()
-        list_eval = dict()
-        for user in queryset:
-            list_eval[user] = get_evaluation_of_quarter(
-                user,
-                self.request.user.teacher.item.book_name
-            )
-        return list_eval
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super(StudentsClass, self).get_context_data(**kwargs)
-        context['student_class_number'] = SchoolClass.objects.get(
-            number_class=self.kwargs.get('class_number'),
-            slug=self.kwargs.get('slug_name')
-        )
-        return context
 
 
 @method_decorator(login_required(login_url='login'), name='dispatch')

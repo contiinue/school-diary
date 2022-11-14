@@ -31,6 +31,8 @@ section {
     text-align: center;
     position: sticky;
     top: 0;
+    background-color: blue;
+    z-index: 1;
 }
 
 .info_block_for_evaluations {

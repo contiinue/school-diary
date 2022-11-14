@@ -136,6 +136,7 @@ async function getDates() {
 
   let avc = document.createElement('th')
   avc.innerHTML = 'Итоговая оценка'
+  avc.classList.add('info_th')
   some_dates.push(avc)
 
   return some_dates
@@ -155,7 +156,7 @@ function getAverageEvaluation (array_evaluations) {
   const average = summ / len
 
   average_evaluation.innerHTML = isNaN(average) ?  0 : average.toFixed(2)
-  
+  average_evaluation.classList.add('text-center')
   return average_evaluation
 }
 

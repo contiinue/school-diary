@@ -73,6 +73,7 @@ class NewHomeWorkForm(forms.ModelForm):
             'item': forms.Select(attrs={'class': 'form-control'}),
             'student_class': forms.Select(attrs={'class': 'form-control'}),
             'home_work': forms.TextInput(attrs={'class': 'form-control'}),
+            'date_end_of_homework': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
         }
 
 
