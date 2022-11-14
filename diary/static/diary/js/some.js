@@ -128,6 +128,7 @@ async function getDates() {
   for (let i of response.dates) {
     let date = new Date(i)
     elem = document.createElement('th')
+    elem.classList.add('info_th')
     elem.innerHTML = date.getDate()
     elem.setAttribute('date', converDate(date))
     some_dates.push(elem)
@@ -151,7 +152,10 @@ function getAverageEvaluation (array_evaluations) {
     }
   }
   let average_evaluation = document.createElement('th')
-  average_evaluation.innerHTML = (summ / len).toFixed(2)
+  const average = summ / len
+
+  average_evaluation.innerHTML = isNaN(average) ?  0 : average.toFixed(2)
+  
   return average_evaluation
 }
 
@@ -189,7 +193,6 @@ function getTdForTableStudents(student) {
 
 async function getStudents() {
   let link = window.location.href.split('/').slice(4, 6)
-  // let r = await fetch(`http://127.0.0.1:8000/api/evaluation/${link[0]}/${link[1]}/`)
   let r = await fetch(`http://127.0.0.1:8000/api/evaluation/get_evaluations/?slug_name=${link[1]}&class_number=${link[0]}`)
   let students = await r.json()
 

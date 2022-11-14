@@ -44,6 +44,9 @@ class MyUser(AbstractUser):
     student = models.OneToOneField(StudentRegistration, on_delete=models.CASCADE, null=True, blank=True)
     teacher = models.OneToOneField(TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True)
 
+    class Meta:
+        ordering = ['-first_name']
+
     def get_absolute_url(self):
         return reverse('student', kwargs={'username': self.username})
 

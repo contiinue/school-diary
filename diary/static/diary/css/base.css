@@ -27,21 +27,26 @@ section {
     user-select: none;  
 }
 
-
-th {
+.info_th {
     text-align: center;
+    position: sticky;
+    top: 0;
+}
+
+.info_block_for_evaluations {
+    width: 0px;
+    height: 0px;
+    z-index: 100;
 }
 
 
 .td_evaluation {
-    position: relative;
     min-width: 54px;
     text-align: center;
 }
 
 .td_evaluation:hover {
     background-color: #e0e0e0;
-    transition: .1s;
 }
 
 

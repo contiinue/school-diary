@@ -1,29 +1,25 @@
-from rest_framework import generics, viewsets
+from rest_framework import viewsets
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from api.my_permissions import IsTeacherPermissions
-from api.serializers import EvaluationSerializer, SetEvaluationSerializer
+from api.serializers import EvaluationSerializer, SetEvaluationSerializer, MyUserSerializer, \
+    StudentRegistrationSerializer
 from services.get_evaluations_of_quarter import get_evaluation_of_quarter, get_now_quarter
-from diary.models import MyUser, BookWithClass, Evaluation
+from diary.models import MyUser, BookWithClass, Evaluation, StudentRegistration
 from datetime import date, timedelta
 
 
-class ApiEvaluation(viewsets.ViewSet, generics.ListAPIView):
-    serializer_class = EvaluationSerializer
-    permission_classes = (IsTeacherPermissions,)
+class MyUserApi(viewsets.ModelViewSet):
+    queryset = MyUser.objects.all()
+    serializer_class = MyUserSerializer
 
-    def get_queryset(self):
-        users = MyUser.objects.filter(
-            student__learned_class__number_class=self.kwargs.get('class_number'),
-            student__learned_class__slug=self.kwargs.get('slug_name')
-        )
-        for i in users:
-            i.evaluation = [(i.pk, i.evaluation, i.date) for i in
-                            get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name)]
-        return users
+
+class StudentApi(viewsets.ModelViewSet):
+    queryset = StudentRegistration.objects.all()
+    serializer_class = StudentRegistrationSerializer
 
 
 class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
@@ -37,7 +33,7 @@ class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
         return self.list(request, *args, **kwargs)
 
     @action(url_path='set_evaluation', detail=False)
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         serializer = self.serializer_class(
             data=self.get_data(request)
         )

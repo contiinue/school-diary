@@ -1,5 +1,17 @@
 from rest_framework import serializers
-from diary.models import Evaluation, MyUser
+from diary.models import Evaluation, MyUser, StudentRegistration
+
+
+class StudentRegistrationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudentRegistration
+        fields = '__all__'
+
+
+class MyUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MyUser
+        fields = '__all__'
 
 
 class EvaluationSerializer(serializers.ModelSerializer):
