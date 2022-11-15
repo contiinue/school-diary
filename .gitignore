@@ -4,4 +4,4 @@
 **/__pycache__
 /media/*
 /media/articles_images/
-/migrations/*
+*/migrations/

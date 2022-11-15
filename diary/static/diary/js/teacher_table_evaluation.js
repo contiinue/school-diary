@@ -11,6 +11,7 @@ a.addEventListener('click', (elem) => {
 
   let input = document.createElement('input')
   input.value = storage
+  input.setAttribute('type', 'number')
   input.classList.add('input_evaluation')
   
   elem.target.append(input)
@@ -19,16 +20,10 @@ a.addEventListener('click', (elem) => {
 
 
 a.addEventListener('input', (elem) => {
-  if (elem.target.value.length > 1) {
-    elem.target.value = elem.target.value[1]
-  }
-
-  if (Number(elem.target.value) > 5 || Number(elem.target.value) <= 0 ) {
-    elem.target.value = ''
-  }
-  
-  else {
-    elem.target.value = elem.target.value[0]
+  let regexp = new RegExp(/[1-5]/g)
+  if (elem.target.value.match(regexp)) {
+    const evaluation = elem.target.value.match(regexp)
+    elem.target.value = evaluation[1] || evaluation[0]
   }
 })
 
@@ -38,12 +33,10 @@ a.addEventListener('focusout', async (elem) => {
   let date = elem.target.parentElement.getAttribute('date')
   let pk = elem.target.parentElement.getAttribute('pk')
   let student_id = elem.target.parentElement.parentElement.firstChild.getAttribute('student-id')
-  // let student_id = elem.target.parentElement.parentElement.children[0].getAttribute('student-id')
 
-  if (!storage && elem.target.value) {
+  if (!storage && elem.target.value && !pk) {
     await setEvaluation(student_id, elem.target.value, date, elem)
     elem.target.parentElement.textContent = elem.target.value
-    
   } 
   else if (elem.target.value && elem.target.value != storage && storage) {
     elem.target.parentElement.textContent = elem.target.value
@@ -223,6 +216,11 @@ async function getTableOfEvaliations() {
 
 }
 
+let b = document.getElementById('sos')
+b.pk = 1
+
+
+console.log(document.getElementById('sos').pk)
 
 getTableOfEvaliations()
 

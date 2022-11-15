@@ -171,6 +171,7 @@ class Teacher(FormView):
 
 
 class StudentsClass(TemplateView):
+    """ todo: user.evaluation_set.filter(quarter=some_quarter) """
     template_name = 'diary/student_class.html'
 
 
