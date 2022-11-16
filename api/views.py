@@ -8,7 +8,7 @@ from api.my_permissions import IsTeacherPermissions
 from api.serializers import EvaluationSerializer, SetEvaluationSerializer, MyUserSerializer, \
     StudentRegistrationSerializer
 from services.get_evaluations_of_quarter import get_evaluation_of_quarter, get_now_quarter
-from diary.models import MyUser, BookWithClass, Evaluation, StudentRegistration
+from diary.models import MyUser, BookWithClass, Evaluation, StudentRegistration, Quarter
 from datetime import date, timedelta
 
 
@@ -30,6 +30,7 @@ class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
 
     @action(url_path='get_evaluations', detail=False, methods=['get'])
     def get(self, request, *args, **kwargs):
+        # self.queryset = Evaluation.objects.filter(quarter=request.GET.get(quarter))
         return self.list(request, *args, **kwargs)
 
     @action(url_path='set_evaluation', detail=False)
@@ -68,21 +69,26 @@ class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
             )
             for i in users:
                 i.evaluation = [(i.pk, i.evaluation, i.date) for i in
-                                get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name)]
+                                get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name,
+                                                          self.request.GET.get('quarter', None))]
             return users
         return super(ApiSetEvaluation, self).get_queryset()
 
 
 class SchoolTimetableApi(APIView):
     def get(self, request, *args, **kwargs):
+        print(self.get_queryset())
         return Response({'dates': self.get_queryset()})
 
     def get_queryset(self) -> list[str]:
-        quarter = get_now_quarter()
+        quarter = Quarter.objects.get(
+            pk=self.request.GET.get('quarter')
+        ) or get_now_quarter()
         time_table = BookWithClass.objects.get(
             student_class__number_class=self.kwargs.get('class_number'),
             student_class__slug=self.kwargs.get('slug_name'),
-            time_table__item__book_name=self.request.user.teacher.item.book_name
+            time_table__item__book_name=self.request.user.teacher.item.book_name,
+            time_table__quarter__pk=quarter.pk
         )
         return self.get_days_of_quarter(
             quarter.start, quarter.end, [i.number_of_week_day() for i in time_table.time_table.lesson_date.all()]

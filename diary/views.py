@@ -170,9 +170,15 @@ class Teacher(FormView):
         return context
 
 
-class StudentsClass(TemplateView):
+class StudentsClass(ListView):
     """ todo: user.evaluation_set.filter(quarter=some_quarter) """
     template_name = 'diary/student_class.html'
+    queryset = Quarter.objects.all()
+    context_object_name = 'quarters'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(StudentsClass, self).get_context_data(object_list=object_list, kwargs=kwargs)
+        return context
 
 
 @method_decorator(login_required(login_url='login'), name='dispatch')

@@ -107,19 +107,22 @@ class DayOfWeak(models.Model):
 class SchoolTimetable(models.Model):
     item = models.ForeignKey(Books, on_delete=models.PROTECT)
     lesson_date = models.ManyToManyField(DayOfWeak)
+    quarter = models.ForeignKey('Quarter', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'Предмет: {self.item} День недели: {self.lesson_date}'
+        return f'Предмет: {self.item.book_name} - Четверть {self.quarter.name}'
 
 
 class BookWithClass(models.Model):
     """ base book for student class, it was done for flexibility  """
-
     time_table = models.ForeignKey(SchoolTimetable, on_delete=models.CASCADE)
     student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return '{} - {}'.format(self.student_class.number_class, self.student_class.name_class)
+        return '{} - {}{} четверть - {}'.format(self.time_table.item,
+                                                self.student_class.number_class,
+                                                self.student_class.name_class,
+                                                self.time_table.quarter.name)
 
 
 class Quarter(models.Model):

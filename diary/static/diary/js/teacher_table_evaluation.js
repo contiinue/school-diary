@@ -30,9 +30,9 @@ a.addEventListener('input', (elem) => {
 
 a.addEventListener('focusout', async (elem) => {
   const childs = elem.target.parentElement.parentElement
-  let date = elem.target.parentElement.getAttribute('date')
-  let pk = elem.target.parentElement.getAttribute('pk')
-  let student_id = elem.target.parentElement.parentElement.firstChild.getAttribute('student-id')
+  let date = elem.target.parentElement.date_evaluation
+  let pk = elem.target.parentElement.pk
+  let student_id = elem.target.parentElement.parentElement.firstChild.student_id
 
   if (!storage && elem.target.value && !pk) {
     await setEvaluation(student_id, elem.target.value, date, elem)
@@ -66,6 +66,7 @@ async function updateEvaluation(pk, evaluation, date) {
 
 
 async function setEvaluation(student_id, evaluation, date, elem) {
+  console.log(date)
   let data = getData(student_id, evaluation, date)
   let headers = getHeadets()
   let response = await fetch('http://127.0.0.1:8000/api/evaluation/set_evaluation/', {
@@ -74,7 +75,7 @@ async function setEvaluation(student_id, evaluation, date, elem) {
     headers: headers,
     })
   let json_parse = await response.json()
-  elem.target.parentElement.setAttribute('pk', json_parse.id)
+  elem.target.parentElement.pk = json_parse.id
 }
 
 async function deleteEvaluation(pk) {
@@ -114,16 +115,16 @@ function converDate (date) {
 
 async function getDates() {
   let some_dates = Array()
-  let link = window.location.href.split('/').slice(4, 6)
-  let r = await fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}/`)
+  let link = window.location.href.replace('?', '').split('/').slice(4)
+  let r = await fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}?${link[2]}`)
   let response = await r.json()
-
   for (let i of response.dates) {
+    console.log(converDate(new Date(year, month + 1, day)))
     let date = new Date(i)
     elem = document.createElement('th')
     elem.classList.add('info_th')
     elem.innerHTML = date.getDate()
-    elem.setAttribute('date', converDate(date))
+    elem.date = converDate(date)
     some_dates.push(elem)
   }
 
@@ -158,17 +159,17 @@ function getTdForTableStudents(student) {
   const td_info_block = Array.from(document.getElementById('info_block_for_evaluations').children).slice(1, -1)
 
   for (let elem of td_info_block) {
-    let element_date = elem.getAttribute('date')
+    let element_date = elem.date
     let td = document.createElement('td')
     td.classList.add('td_evaluation')
-    td.setAttribute('date', element_date)
+    td.date_evaluation = element_date
     
     if (student.evaluation) {
       for (let eval of student.evaluation) {
         let date_eval = converDate(new Date(eval[2]))
   
         if (date_eval == element_date) {
-          td.setAttribute('pk', eval[0])
+          td.pk = eval[0]
           td.innerHTML += eval[1]
         }
       }
@@ -178,7 +179,7 @@ function getTdForTableStudents(student) {
 
   fio = document.createElement('th')
   fio.innerHTML = `${student.first_name} ${student.last_name}`
-  fio.setAttribute('student-id', student.id)
+  fio.student_id = student.id
   fragment.unshift(fio)
 
   fragment.push(getAverageEvaluation(fragment))
@@ -186,8 +187,8 @@ function getTdForTableStudents(student) {
 }
 
 async function getStudents() {
-  let link = window.location.href.split('/').slice(4, 6)
-  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/get_evaluations/?slug_name=${link[1]}&class_number=${link[0]}`)
+  let link = window.location.href.replace('?', '').split('/').slice(4)
+  let r = await fetch(`http://127.0.0.1:8000/api/evaluation/get_evaluations/?slug_name=${link[1]}&class_number=${link[0]}&${link[2]}`)
   let students = await r.json()
 
   students.forEach((student) => {
@@ -220,7 +221,6 @@ let b = document.getElementById('sos')
 b.pk = 1
 
 
-console.log(document.getElementById('sos').pk)
 
 getTableOfEvaliations()
 
