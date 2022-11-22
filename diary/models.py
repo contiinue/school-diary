@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from .fields import TokenAutorizateField
+
 
 class UserRegistrationMixin(models.Model):
     class Meta:
@@ -36,6 +38,20 @@ class TeacherRegistration(UserRegistrationMixin):
     )
 
 
+class TokenRegistration(models.Model):
+    who_registration_choices = (
+        ('teacher', 'Учитель'),
+        ('student', 'Студент/Родитель')
+    )
+
+    token = TokenAutorizateField(max_length=33, blank=True, unique=True)
+    date_token_create = models.DateField(auto_now=True)
+    who_registration = models.CharField(max_length=20, choices=who_registration_choices)
+
+    def __str__(self):
+        return self.token
+
+
 class MyUser(AbstractUser):
     """
     Base User registration , user has attributes ( base + teacher | student, age, class  )
@@ -43,6 +59,7 @@ class MyUser(AbstractUser):
     email = models.EmailField(unique=True)
     student = models.OneToOneField(StudentRegistration, on_delete=models.CASCADE, null=True, blank=True)
     teacher = models.OneToOneField(TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True)
+    invitation_token = models.CharField(max_length=33, null=True)  # todo: delete null=True
 
     class Meta:
         ordering = ['-first_name']

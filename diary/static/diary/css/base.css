@@ -20,7 +20,16 @@ section {
     width: 26%;
 }
 
+/* q */
+
+.span_quarters {
+    font-size: 20px;
+    text-align: center;
+}
+
 /* teacher page // table block */
+
+
 .table {
     -moz-user-select: none;
     -khtml-user-select: none;
@@ -33,6 +42,7 @@ section {
     top: 0;
     background-color: blue;
     z-index: 1;
+    min-width: 70px;
 }
 
 .info_block_for_evaluations {
@@ -42,7 +52,6 @@ section {
 }
 
 .td_evaluation {
-    min-width: 54px;
     text-align: center;
 }
 
@@ -50,14 +59,17 @@ section {
     background-color: #e0e0e0;
 }
 
+.td_evaluation, .input_evaluation, .th_name_student {
+    height: 100%;
+    width: 100%;
+    max-width: 100px;
+}
 
 .input_evaluation {
-    max-width: 35px;
-    max-height: 25px;
     color: transparent;
     text-shadow: 0 0 0 black;
     text-align: center;
-    border-radius: 10px;
+    border-radius: 7px;
 }
 
 .input_evaluation::-webkit-outer-spin-button,
@@ -69,3 +81,4 @@ section {
 .input_evaluation[type=number] {
   -moz-appearance: textfield;
 }
+

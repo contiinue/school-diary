@@ -25,12 +25,11 @@ class StudentApi(viewsets.ModelViewSet):
 class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
                        mixins.UpdateModelMixin, mixins.ListModelMixin):
     serializer_class = SetEvaluationSerializer
-    permission_classes = (IsTeacherPermissions,)
+    # permission_classes = (IsTeacherPermissions,)
     queryset = Evaluation.objects.all()
 
     @action(url_path='get_evaluations', detail=False, methods=['get'])
     def get(self, request, *args, **kwargs):
-        # self.queryset = Evaluation.objects.filter(quarter=request.GET.get(quarter))
         return self.list(request, *args, **kwargs)
 
     @action(url_path='set_evaluation', detail=False)
@@ -63,28 +62,27 @@ class ApiSetEvaluation(viewsets.GenericViewSet, mixins.DestroyModelMixin,
 
     def get_queryset(self):
         if self.request.GET:
+            quarter = get_now_quarter(self.request.GET.get('quarter'))
             users = MyUser.objects.filter(
                 student__learned_class__number_class=self.request.GET.get('class_number'),
                 student__learned_class__slug=self.request.GET.get('slug_name')
             )
-            for i in users:
-                i.evaluation = [(i.pk, i.evaluation, i.date) for i in
-                                get_evaluation_of_quarter(i, self.request.user.teacher.item.book_name,
-                                                          self.request.GET.get('quarter', None))]
+            for user in users:
+                user.evaluation = user.evaluation_set.filter(quarter=quarter)
             return users
         return super(ApiSetEvaluation, self).get_queryset()
 
 
 class SchoolTimetableApi(APIView):
     def get(self, request, *args, **kwargs):
-        print(self.get_queryset())
         return Response({'dates': self.get_queryset()})
 
     def get_queryset(self) -> list[str]:
         quarter = Quarter.objects.get(
             pk=self.request.GET.get('quarter')
-        ) or get_now_quarter()
-        time_table = BookWithClass.objects.get(
+        ) if self.request.GET.get('quarter') else get_now_quarter()
+
+        time_table = BookWithClass.objects.select_related('time_table', 'student_class').get(
             student_class__number_class=self.kwargs.get('class_number'),
             student_class__slug=self.kwargs.get('slug_name'),
             time_table__item__book_name=self.request.user.teacher.item.book_name,
