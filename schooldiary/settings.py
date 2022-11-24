@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/4.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
+import datetime
 import os.path
 from pathlib import Path
 
@@ -146,6 +147,9 @@ INTERNAL_IPS = [
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Token registration
+invitation_token_expiration_date = datetime.timedelta(days=2)
 
 # Redis
 REDIS_HOST = os.environ.get('REDIS_HOST')

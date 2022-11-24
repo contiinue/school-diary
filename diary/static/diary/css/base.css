@@ -20,6 +20,30 @@ section {
     width: 26%;
 }
 
+
+/* Registraton page */
+
+.registration_ask {
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto 
+}
+
+.form_request_form {
+    display: flex;
+    max-height: 40px;
+    
+}
+
+.im_r {
+    font-size: 27px;
+}
+
+.info_log_text {
+    padding: 20px;
+}
+
+
 /* q */
 
 .span_quarters {
@@ -34,6 +58,10 @@ section {
     -moz-user-select: none;
     -khtml-user-select: none;
     user-select: none;  
+}
+
+tr:hover {
+    background-color: #e0e0e0;
 }
 
 .info_th {
@@ -56,7 +84,7 @@ section {
 }
 
 .td_evaluation:hover {
-    background-color: #e0e0e0;
+    background-color: #6d6a6a;
 }
 
 .td_evaluation, .input_evaluation, .th_name_student {

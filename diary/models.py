@@ -47,6 +47,7 @@ class TokenRegistration(models.Model):
     token = TokenAutorizateField(max_length=33, blank=True, unique=True)
     date_token_create = models.DateField(auto_now=True)
     who_registration = models.CharField(max_length=20, choices=who_registration_choices)
+    student_class = models.ForeignKey('SchoolClass', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.token
@@ -59,7 +60,7 @@ class MyUser(AbstractUser):
     email = models.EmailField(unique=True)
     student = models.OneToOneField(StudentRegistration, on_delete=models.CASCADE, null=True, blank=True)
     teacher = models.OneToOneField(TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True)
-    invitation_token = models.CharField(max_length=33, null=True)  # todo: delete null=True
+    invitation_token = models.CharField(max_length=33, null=True)
 
     class Meta:
         ordering = ['-first_name']
@@ -133,7 +134,7 @@ class SchoolTimetable(models.Model):
 class BookWithClass(models.Model):
     """ base book for student class, it was done for flexibility  """
     time_table = models.ForeignKey(SchoolTimetable, on_delete=models.CASCADE)
-    student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, null=True)
+    student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE)
 
     def __str__(self):
         return '{} - {}{} четверть - {}'.format(self.time_table.item,
