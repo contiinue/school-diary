@@ -20,11 +20,12 @@ from django.conf.urls.static import static
 from schooldiary import settings
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("", include("diary.urls")),
-    path("blog/", include("blog.urls")),
-    path("api/", include("api.urls")),
+    path('admin/', admin.site.urls),
+    path('', include('diary.urls')),
+    path('blog/', include('blog.urls')),
+    path('api/', include('api.urls')),
+
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
-    urlpatterns += (path("__debug__/", include("debug_toolbar.urls")),)
+    urlpatterns += (path('__debug__/', include('debug_toolbar.urls')),)

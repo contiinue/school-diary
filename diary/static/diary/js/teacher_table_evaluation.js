@@ -2,6 +2,7 @@ let a = document.getElementById('table')
 
 let storage
 
+
 a.addEventListener('click', (elem) => {
   let td = elem.target.closest("td");
   if (!td) return;
@@ -15,6 +16,10 @@ a.addEventListener('click', (elem) => {
   
   elem.target.append(input)
   elem.target.firstChild.focus()
+  console.log('click', storage)
+  if (!storage) {
+    console.log('пуст')
+  }
 })
 
 
@@ -23,7 +28,6 @@ a.addEventListener('input', (elem) => {
   if (elem.target.value.match(regexp)) {
     const evaluation = elem.target.value.match(regexp)
     elem.target.value = evaluation[1] || evaluation[0]
-    
   }
 })
 
@@ -31,6 +35,7 @@ a.addEventListener('input', (elem) => {
 a.addEventListener('focusout', async (elem) => {
   const childs = elem.target.parentElement.parentElement
   let date = elem.target.parentElement.date_evaluation
+  console.log('focusout', storage)
   let pk = elem.target.parentElement.pk
   let student_id = elem.target.parentElement.parentElement.firstChild.student_id
   if (!storage && elem.target.value && !pk) {
@@ -89,6 +94,7 @@ function getCookie(name) {
       const cookies = document.cookie.split(';');
       for (let i = 0; i < cookies.length; i++) {
           const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
           if (cookie.substring(0, name.length + 1) === (name + '=')) {
               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
               break;
@@ -126,11 +132,6 @@ async function getDates() {
   let link = window.location.href.replace('?', '').split('/').slice(4)
   let r = await fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}?${link[2]}`)
   let response = await r.json()
-  let info_first_elem = document.createElement('th')
-  info_first_elem.innerHTML = '#'
-  info_first_elem.classList.add('th_name_student', 'bg-light', 'info_th')
-  some_dates.push(info_first_elem)
-
   for (let i of response.dates) {
     let date = new Date(i)
     elem = document.createElement('th')
@@ -142,7 +143,7 @@ async function getDates() {
 
   let avc = document.createElement('th')
   avc.innerHTML = 'Итоговая оценка'
-  avc.classList.add('info_th', 'average_evaluation', 'bg-light')
+  avc.classList.add('info_th')
   some_dates.push(avc)
 
   return some_dates
@@ -162,7 +163,7 @@ function getAverageEvaluation (array_evaluations) {
   const average = summ / len
 
   average_evaluation.innerHTML = isNaN(average) ?  0 : average.toFixed(2)
-  average_evaluation.classList.add('text-center', 'average_evaluation', 'bg-light')
+  average_evaluation.classList.add('text-center')
   return average_evaluation
 }
 
@@ -187,7 +188,7 @@ function getTdForTableStudents(student) {
   fio = document.createElement('th')
   fio.innerHTML = `${student.first_name} ${student.last_name}`
   fio.student_id = student.id
-  fio.classList.add('th_name_student', 'bg-light')
+  fio.classList.add('th_name_student')
   fragment.unshift(fio)
 
   fragment.push(getAverageEvaluation(fragment))
@@ -221,13 +222,14 @@ async function getTableOfEvaliations() {
   for (let elem of dates) {
     tr.append(elem) 
   }
-  getStudents()
-  for (let date of tr.children) {
-    if (new Date() <= date.date) {
-      a.firstElementChild.scrollLeft += date.offsetLeft
-    }
-  }
-  
+  getStudents() 
+
 }
 
+let b = document.getElementById('sos')
+b.pk = 1
+
+
+
 getTableOfEvaliations()
+

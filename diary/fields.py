@@ -11,11 +11,9 @@ class TokenAutorizateField(models.CharField):
     def __init__(self, auto_create_token=True, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.auto_created_token = auto_create_token
-
+        
     def _check_max_length_attribute(self, **kwargs):
-        validations = super(TokenAutorizateField, self)._check_max_length_attribute(
-            **kwargs
-        )
+        validations = super(TokenAutorizateField, self)._check_max_length_attribute(**kwargs)
         if validations:
             return validations
 

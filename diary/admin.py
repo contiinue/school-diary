@@ -4,7 +4,7 @@ from .models import *
 
 
 class SchoolClassAdmin(admin.ModelAdmin):
-    prepopulated_fields = {"slug": ("name_class",)}
+    prepopulated_fields = {'slug': ('name_class',)}
 
 
 admin.site.register(MyUser, UserAdmin)
@@ -17,6 +17,5 @@ admin.site.register(Quarter)
 admin.site.register(SchoolTimetable)
 admin.site.register(DayOfWeak)
 admin.site.register(TokenRegistration)
-admin.site.register(School)
 
 # Register your models here.

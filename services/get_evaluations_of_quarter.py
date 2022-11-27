@@ -17,8 +17,6 @@ def get_now_quarter(quarter: int = None) -> Quarter:
     return get_object_or_404(Quarter, pk=quarter)
 
 
-def get_evaluation_of_quarter(
-    student: MyUser, item: str, quarter: int = None
-) -> list[Evaluation]:
+def get_evaluation_of_quarter(student: MyUser, item: str, quarter: int = None) -> list[Evaluation]:
     quarter = get_now_quarter(quarter)
     return get_evaluation(student, quarter, item)
