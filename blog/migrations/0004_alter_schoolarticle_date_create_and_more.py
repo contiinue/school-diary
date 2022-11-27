@@ -6,18 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('blog', '0003_schoolarticle_is_published'),
+        ("blog", "0003_schoolarticle_is_published"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='schoolarticle',
-            name='date_create',
+            model_name="schoolarticle",
+            name="date_create",
             field=models.DateTimeField(auto_now=True),
         ),
         migrations.AlterField(
-            model_name='schoolarticle',
-            name='image',
-            field=models.ImageField(blank=True, null=True, upload_to='articles_images/%Y/%m/%d'),
+            model_name="schoolarticle",
+            name="image",
+            field=models.ImageField(
+                blank=True, null=True, upload_to="articles_images/%Y/%m/%d"
+            ),
         ),
     ]

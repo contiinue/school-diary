@@ -1,10 +1,21 @@
 from django.contrib.auth.admin import UserAdmin
 from django.contrib import admin
-from .models import *
+from .models import (
+    MyUser,
+    HomeWorkModel,
+    Books,
+    Evaluation,
+    SchoolClass,
+    BookWithClass,
+    Quarter,
+    SchoolTimetable,
+    DayOfWeak,
+    TokenRegistration,
+)
 
 
 class SchoolClassAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name_class',)}
+    prepopulated_fields = {"slug": ("name_class",)}
 
 
 admin.site.register(MyUser, UserAdmin)

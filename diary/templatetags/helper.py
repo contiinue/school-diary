@@ -1,6 +1,5 @@
 from django import template
 from datetime import date
-from collections import defaultdict
 
 register = template.Library()
 
@@ -21,5 +20,3 @@ def middle_eval(evaluations: list):
         return round(sum(evaluations) / len(evaluations), 2)
     except ZeroDivisionError:
         return 0
-
-    # return round(result, 2)

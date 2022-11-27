@@ -9,14 +9,16 @@ def get_evaluation(student, quarter: Quarter, item) -> list[Evaluation]:
     )
 
 
-def get_now_quarter(quarter: int = None) -> Quarter:
-    if quarter is None:
+def get_now_quarter(quarter: int = 0) -> Quarter:
+    if quarter is False:
         now = datetime.today().date()
         return get_object_or_404(Quarter, start__lte=now, end__gte=now)
 
     return get_object_or_404(Quarter, pk=quarter)
 
 
-def get_evaluation_of_quarter(student: MyUser, item: str, quarter: int = None) -> list[Evaluation]:
+def get_evaluation_of_quarter(
+    student: MyUser, item: str, quarter: int = 0
+) -> list[Evaluation]:
     quarter = get_now_quarter(quarter)
     return get_evaluation(student, quarter, item)
