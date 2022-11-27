@@ -5,23 +5,21 @@ from diary.models import Evaluation, MyUser, StudentRegistration
 class StudentRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentRegistration
-        fields = '__all__'
+        fields = "__all__"
 
 
 class MyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
-        fields = '__all__'
+        fields = "__all__"
 
 
 class EvaluationSerializer(serializers.ModelSerializer):
-    evaluation = serializers.SerializerMethodField('_get_evaluations_data')
+    evaluation = serializers.SerializerMethodField("_get_evaluations_data")
 
     class Meta:
         model = MyUser
-        fields = (
-            'id', 'first_name', 'last_name', 'evaluation'
-        )
+        fields = ("id", "first_name", "last_name", "evaluation")
 
     @staticmethod
     def _get_evaluations_data(model: MyUser) -> list:
@@ -31,7 +29,7 @@ class EvaluationSerializer(serializers.ModelSerializer):
 class SetEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
-        fields = ('id', 'student', 'evaluation', 'item', 'quarter', 'date')
+        fields = ("id", "student", "evaluation", "item", "quarter", "date")
 
 
 class SchoolTimetableSerializer(serializers.Serializer):
