@@ -9,7 +9,7 @@ class MyUserForm(UserCreationForm):
 
     username = forms.CharField(label='Логин', widget=forms.TextInput(attrs={'class': 'form-control'}))
     password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
-    password2 = forms.CharField(label='Пдтверждение пароля',
+    password2 = forms.CharField(label='Потверждение пароля',
                                 widget=forms.PasswordInput(attrs={'class': 'form-control'}))
 
     class Meta:
@@ -17,14 +17,16 @@ class MyUserForm(UserCreationForm):
         fields = (
             'first_name', 'last_name',
             "username", 'email',
-            "password1", "password2"
+            "password1", "password2",
+            'invitation_token'
         )
 
         widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control for_test'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'username': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'invitation_token': forms.TextInput(attrs={'class': 'form-control'}),
             'password1': forms.PasswordInput(attrs={'class': 'form-control'}),
             'password2': forms.PasswordInput(attrs={'class': 'form-control'}),
         }
@@ -49,13 +51,13 @@ class TeacherRegistrationForm(forms.ModelForm):
 
 
 class StudentRegistrationForm(forms.ModelForm):
+
     class Meta:
         model = StudentRegistration
-        fields = ['age', 'learned_class']
+        fields = ('age', )
 
         widgets = {
             'age': forms.TextInput(attrs={'class': 'form-control'}),
-            'learned_class': forms.Select(attrs={'class': 'form-control'})
         }
 
 
@@ -73,6 +75,7 @@ class NewHomeWorkForm(forms.ModelForm):
             'item': forms.Select(attrs={'class': 'form-control'}),
             'student_class': forms.Select(attrs={'class': 'form-control'}),
             'home_work': forms.TextInput(attrs={'class': 'form-control'}),
+            'date_end_of_homework': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
         }
 
 

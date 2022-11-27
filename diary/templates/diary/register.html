@@ -5,6 +5,7 @@
 <div class="container-lg">
 	<div class="register-form">
 		<h1>Регистрация</h1>
+		<section>
 		{% if user and registration %}
 		<form method="POST">
 			{% csrf_token %}
@@ -13,20 +14,25 @@
 			<button class="btn btn-primary" type="submit">Register</button>
 		</form>
 		{% else %}
-		<form action="" id="size-form">
-			<div class="ask">
-			 <select name="register_teacher_or_student" form="size-form" class="form-select" aria-label="Default select example">
-				<option value="student">Студент, Родитель</option>
-				<option value="teacher">Учитель</option>
-			  </select>
-			</div>
-			<div class="mb-4">
-			  <button type="submit" class="btn btn-primary mb-4">Submit</button>
-			</div>
-		   </form> 
+		<div class="registration_ask">
+			<form action="", method="get" class="form_request_form">
+				<div class="form-container"></div>
+				<label for="im" class="im_r">Я: </label>
+				<select name="request_form" required="" class="form-select" aria-label="Default select example">
+					<option value="student">Студент, Родитель</option>
+					<option value="teacher">Учитель</option>
+				</select>
+
+				<div class="mb-4">
+					<button type="submit" class="btn btn-primary mb-4">Submit</button>
+				</div>
+		</div>
+		</form>
 		{% endif %}
-		<p class="text-center">Если вы уже зарегистрированны, авторизоваться можно <a href="{% url 'login' %}">здесь</a></p>
+		<p class="text-center info_log_text">Если вы уже зарегистрированны, авторизоваться можно <a href="{% url 'login' %}">здесь</a></p>
+		</section>
 	</div>
+
 </div>
 
 {% endblock %}

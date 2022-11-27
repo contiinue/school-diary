@@ -1,9 +1,10 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.base import TemplateResponseMixin
 
 from services.excel_evaluations import get_excel
 from services.get_evaluations_of_quarter import get_now_quarter, get_evaluation_of_quarter
 
+from schooldiary.settings import invitation_token_expiration_date
 from .models import *
 from .utils import request_student, request_teacher
 from .forms import MyUserForm, NewHomeWorkForm, StudentRegistrationForm, TeacherRegistrationForm
@@ -15,6 +16,9 @@ from django.views.generic import ListView, FormView, TemplateView, View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
+from django.core.exceptions import ObjectDoesNotExist
+
+from datetime import datetime
 
 
 class HomePage(TemplateView):
@@ -23,70 +27,79 @@ class HomePage(TemplateView):
 
 
 class Register(View, TemplateResponseMixin):
-    """ 
-    :todo посмотреть-сделать миксины и уменьшить килечество кода
-    :todo убрать дублирование render_to_response
-    Register form send to template  
-    """
     template_name = 'diary/register.html'
     form = MyUserForm
     success_url = 'student'
 
-    def get(self, request, *args, **kwargs):
-        return render(request, self.template_name, self.get_context_data())
-
-    def post(self, request, *args, **kwargs):
-        user_form = self.form(request.POST)
-        if user_form.is_valid():
-            return self.form_valid(
-                user_form.save(commit=False)
-            )
-        return self.render_to_response({'user': user_form, 'registration': self.get_form()})
-
-    def get_context_data(self, **kwargs):
-        who_register = self.request.GET.get('register_teacher_or_student')
-        kwargs['user'] = MyUserForm
-        if who_register == 'teacher':
-            kwargs['registration'] = TeacherRegistrationForm
-        elif who_register == 'student':
-            kwargs['registration'] = StudentRegistrationForm
-        else:
-            return {}
-        return kwargs
-
-    def get_form(self) -> TeacherRegistrationForm | StudentRegistrationForm:
-        if 'item' in self.request.POST:
-            self.success_url = 'teacher'
-            return TeacherRegistrationForm(self.request.POST)
-
-        if 'learned_class' in self.request.POST:
-            return StudentRegistrationForm(self.request.POST)
-
-    def form_valid(self, user_model):
-        form_teacher_or_student = self.get_form()
-        if form_teacher_or_student.is_valid():
-            stud_or_teach_model = form_teacher_or_student.save()
-            user = self.save_user(user_model, stud_or_teach_model)
-            login(self.request, user)
-            return redirect(self.get_success_url())
-        return self.render_to_response(
-            {'user': self.form(self.request.POST), 'registration': self.get_form()}
+    def get(self, request):
+        return render(
+            request,
+            self.template_name,
+            self.get_context_data()
         )
 
-    @staticmethod
-    def save_user(user_model: MyUser, student_or_teacher_model: StudentRegistration | TeacherRegistration) -> MyUser:
-        if isinstance(student_or_teacher_model, TeacherRegistration):
-            user_model.teacher = student_or_teacher_model
-            user_model.save()
-            return user_model
-        user_model.student = student_or_teacher_model
-        user_model.save()
-        return user_model
+    def post(self, request):
+        form_student_or_teacher = self.get_form_for_teacher_or_student()(request.POST)
+        form = self.form(request.POST)
+        token = self.get_token(form)
+        if form_student_or_teacher.is_valid() and form.is_valid():
+            return self.form_valid(form, form_student_or_teacher, token)
+        else:
+            return self.form_invalid(form, form_student_or_teacher)
 
-    def get_success_url(self):
+    def form_invalid(
+            self, form: MyUserForm, form_student_or_teacher: StudentRegistrationForm | TeacherRegistrationForm):
+        return self.render_to_response({'user': form, 'registration': form_student_or_teacher})
+
+    def get_token(self, form: MyUserForm):
+        try:
+            token = TokenRegistration.objects.get(token=self.request.POST.get('invitation_token'))
+            if datetime.today().date() - token.date_token_create > invitation_token_expiration_date:
+                return form.add_error('invitation_token', 'Срок действия токена истек')
+
+            elif not token.who_registration == self.request.GET.get('request_form'):
+                return form.add_error('invitation_token', 'Не корректный токен')
+
+            else:
+                return token
+        except ObjectDoesNotExist:
+            return form.add_error('invitation_token', 'Не корректный токен')
+
+    def form_valid(self, form: MyUserForm, form_student_or_teacher: StudentRegistrationForm | TeacherRegistrationForm,
+                   token: TokenRegistration):
+        model_user = form.save(commit=False)
+        teacher_or_student = form_student_or_teacher.save(commit=False)
+        if isinstance(form_student_or_teacher, StudentRegistrationForm):
+            teacher_or_student.learned_class = token.student_class
+            model_user.student = teacher_or_student
+            self.save_user(model_user, teacher_or_student)
+        else:
+            model_user.teacher = teacher_or_student
+            self.save_user(model_user, teacher_or_student)
+            self.success_url = 'teacher'
+        token.delete()
+        return self.get_success_url(model_user)
+
+    def save_user(self, model_user, teacher_or_student) -> None:
+        teacher_or_student.save()
+        model_user.save()
+        login(self.request, model_user)
+
+    def get_form_for_teacher_or_student(self):
+        if self.request.GET.get('request_form') == 'student':
+            return StudentRegistrationForm
+        elif self.request.GET.get('request_form') == 'teacher':
+            return TeacherRegistrationForm
+
+    def get_context_data(self, **kwargs) -> dict:
+        kwargs['user'] = self.form
+        kwargs['registration'] = self.get_form_for_teacher_or_student()
+        return kwargs
+
+    def get_success_url(self, user) -> reverse_lazy:
         if self.success_url == 'student':
-            return reverse_lazy('student', kwargs={'username': self.request.user.username})
-        return reverse_lazy('teacher')
+            return HttpResponseRedirect(reverse_lazy('student', kwargs={'username': user.username}))
+        return HttpResponseRedirect(reverse_lazy('teacher'))
 
 
 class LoginUser(LoginView):
@@ -118,7 +131,7 @@ class HomeWork(ListView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(
-            student_class=self.request.user.learned_class
+            student_class=self.request.user.student.learned_class.number_class
         )
 
     def get_context_data(self, **kwargs):
@@ -136,9 +149,9 @@ class Student(ListView):
         qs = super().get_queryset()
         evaluations = dict()
         for book in qs:
-            evaluations[book.time_table.book_name] = get_evaluation_of_quarter(
+            evaluations[book.time_table.item.book_name] = get_evaluation_of_quarter(
                 self.request.user,
-                book.time_table.book_name,
+                book.time_table.item.book_name,
                 self.request.GET.get('quarter')
             )
         return evaluations
@@ -170,31 +183,10 @@ class Teacher(FormView):
 
 
 class StudentsClass(ListView):
+    """ todo: user.evaluation_set.filter(quarter=some_quarter) """
     template_name = 'diary/student_class.html'
-    model = MyUser
-    context_object_name = 'evaluations_with_name_user'
-
-    def get_queryset(self):
-        self.queryset = MyUser.objects.filter(
-            student__learned_class__number_class=self.kwargs.get('class_number'),
-            student__learned_class__slug=self.kwargs.get('slug_name')
-        )
-        queryset = super().get_queryset()
-        list_eval = dict()
-        for user in queryset:
-            list_eval[user] = get_evaluation_of_quarter(
-                user,
-                self.request.user.teacher.item.book_name
-            )
-        return list_eval
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super(StudentsClass, self).get_context_data(**kwargs)
-        context['student_class_number'] = SchoolClass.objects.get(
-            number_class=self.kwargs.get('class_number'),
-            slug=self.kwargs.get('slug_name')
-        )
-        return context
+    queryset = Quarter.objects.all()
+    context_object_name = 'quarters'
 
 
 @method_decorator(login_required(login_url='login'), name='dispatch')

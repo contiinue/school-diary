@@ -3,6 +3,8 @@ from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from .fields import TokenAutorizateField
+
 
 class UserRegistrationMixin(models.Model):
     class Meta:
@@ -36,6 +38,21 @@ class TeacherRegistration(UserRegistrationMixin):
     )
 
 
+class TokenRegistration(models.Model):
+    who_registration_choices = (
+        ('teacher', 'Учитель'),
+        ('student', 'Студент/Родитель')
+    )
+
+    token = TokenAutorizateField(max_length=33, blank=True, unique=True)
+    date_token_create = models.DateField(auto_now=True)
+    who_registration = models.CharField(max_length=20, choices=who_registration_choices)
+    student_class = models.ForeignKey('SchoolClass', on_delete=models.CASCADE, null=True)
+
+    def __str__(self):
+        return self.token
+
+
 class MyUser(AbstractUser):
     """
     Base User registration , user has attributes ( base + teacher | student, age, class  )
@@ -43,6 +60,10 @@ class MyUser(AbstractUser):
     email = models.EmailField(unique=True)
     student = models.OneToOneField(StudentRegistration, on_delete=models.CASCADE, null=True, blank=True)
     teacher = models.OneToOneField(TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True)
+    invitation_token = models.CharField(max_length=33, null=True)
+
+    class Meta:
+        ordering = ['-first_name']
 
     def get_absolute_url(self):
         return reverse('student', kwargs={'username': self.username})
@@ -104,19 +125,22 @@ class DayOfWeak(models.Model):
 class SchoolTimetable(models.Model):
     item = models.ForeignKey(Books, on_delete=models.PROTECT)
     lesson_date = models.ManyToManyField(DayOfWeak)
+    quarter = models.ForeignKey('Quarter', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'Предмет: {self.item} День недели: {self.lesson_date}'
+        return f'Предмет: {self.item.book_name} - Четверть {self.quarter.name}'
 
 
 class BookWithClass(models.Model):
     """ base book for student class, it was done for flexibility  """
-
     time_table = models.ForeignKey(SchoolTimetable, on_delete=models.CASCADE)
-    student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE, null=True)
+    student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE)
 
     def __str__(self):
-        return '{} - {}'.format(self.student_class.number_class, self.student_class.name_class)
+        return '{} - {}{} четверть - {}'.format(self.time_table.item,
+                                                self.student_class.number_class,
+                                                self.student_class.name_class,
+                                                self.time_table.quarter.name)
 
 
 class Quarter(models.Model):
