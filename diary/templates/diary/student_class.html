@@ -15,10 +15,30 @@
                     <a class="btn btn-dark" href="{% url 'student-class' slug_name='a' class_number=1 %}?quarter={{ i.pk }}">{{ i.name }}</a>
                 {% endif %}
             {% endfor %}
-        </div>
+
+        <!-- <div class="pagination d-flex justify-content-between">
+            <div class="paginator_back_quarter text-center ">
+                {% if page_obj.has_previous %}
+                    <a href="?quarter={{ page_obj.object_list.0.pk }}">стрелка</a>
+                {% else %}
+                    <p>стрелка</p>
+                {% endif %}
+            </div>
+            
+            <div class="paginator_info_quarter">{{ page_obj.object_list.0 }}</div>
+            
+            <div class="paginator_next_quarter">
+                {% if page_obj.has_next %}
+                    <a href="?quarter={{ page_obj.object_list.0.pk }}">стрелка</a>
+                {% else %}
+                    <p>стрелка</p>
+                {% endif %}
+            </div>
+        </div> -->
+
         <table class="table" id="table">
             <tr id="info_block_for_evaluations">
-                <th>#</th>
+
             </tr>
         </table>
     </section>
