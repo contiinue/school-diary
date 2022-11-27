@@ -10,4 +10,6 @@ class QuickstartUser(HttpUser):
         self.client.get("/student-class/1/a/")
 
     def on_start(self):
-        self.client.post("/login/", json={"username": "teacher", "password": "Zzz123121"})
+        self.client.post(
+            "/login/", json={"username": "teacher", "password": "Zzz123121"}
+        )

@@ -7,19 +7,26 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='SchoolArticle',
+            name="SchoolArticle",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=100)),
-                ('content', models.TextField()),
-                ('image', models.ImageField(upload_to='articles_images/%Y/%m/%d')),
-                ('date_create', models.DateTimeField()),
-                ('date_edit', models.DateTimeField(auto_now=True, null=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("title", models.CharField(max_length=100)),
+                ("content", models.TextField()),
+                ("image", models.ImageField(upload_to="articles_images/%Y/%m/%d")),
+                ("date_create", models.DateTimeField()),
+                ("date_edit", models.DateTimeField(auto_now=True, null=True)),
             ],
         ),
     ]

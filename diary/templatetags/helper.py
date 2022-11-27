@@ -1,6 +1,5 @@
 from django import template
 from datetime import date
-from collections import defaultdict
 
 register = template.Library()
 

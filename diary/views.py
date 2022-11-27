@@ -2,12 +2,27 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.views.generic.base import TemplateResponseMixin
 
 from services.excel_evaluations import get_excel
-from services.get_evaluations_of_quarter import get_now_quarter, get_evaluation_of_quarter
+from services.get_evaluations_of_quarter import (
+    get_now_quarter,
+    get_evaluation_of_quarter,
+)
 
 from schooldiary.settings import invitation_token_expiration_date
-from .models import *
+from .models import (
+    TokenRegistration,
+    StudentRegistration,
+    HomeWorkModel,
+    BookWithClass,
+    Quarter,
+    SchoolClass,
+)
 from .utils import request_student, request_teacher
-from .forms import MyUserForm, NewHomeWorkForm, StudentRegistrationForm, TeacherRegistrationForm
+from .forms import (
+    MyUserForm,
+    NewHomeWorkForm,
+    StudentRegistrationForm,
+    TeacherRegistrationForm,
+)
 
 from django.urls import reverse_lazy
 from django.contrib.auth import login, logout
@@ -22,21 +37,18 @@ from datetime import datetime
 
 
 class HomePage(TemplateView):
-    """ Home-page  """
-    template_name = 'diary/homepage.html'
+    """Home-page"""
+
+    template_name = "diary/homepage.html"
 
 
 class Register(View, TemplateResponseMixin):
-    template_name = 'diary/register.html'
+    template_name = "diary/register.html"
     form = MyUserForm
-    success_url = 'student'
+    success_url = "student"
 
     def get(self, request):
-        return render(
-            request,
-            self.template_name,
-            self.get_context_data()
-        )
+        return render(request, self.template_name, self.get_context_data())
 
     def post(self, request):
         form_student_or_teacher = self.get_form_for_teacher_or_student()(request.POST)
@@ -48,25 +60,39 @@ class Register(View, TemplateResponseMixin):
             return self.form_invalid(form, form_student_or_teacher)
 
     def form_invalid(
-            self, form: MyUserForm, form_student_or_teacher: StudentRegistrationForm | TeacherRegistrationForm):
-        return self.render_to_response({'user': form, 'registration': form_student_or_teacher})
+        self,
+        form: MyUserForm,
+        form_student_or_teacher: StudentRegistrationForm | TeacherRegistrationForm,
+    ):
+        return self.render_to_response(
+            {"user": form, "registration": form_student_or_teacher}
+        )
 
     def get_token(self, form: MyUserForm):
         try:
-            token = TokenRegistration.objects.get(token=self.request.POST.get('invitation_token'))
-            if datetime.today().date() - token.date_token_create > invitation_token_expiration_date:
-                return form.add_error('invitation_token', 'Срок действия токена истек')
+            token = TokenRegistration.objects.get(
+                token=self.request.POST.get("invitation_token")
+            )
+            if (
+                datetime.today().date() - token.date_token_create
+                > invitation_token_expiration_date
+            ):
+                return form.add_error("invitation_token", "Срок действия токена истек")
 
-            elif not token.who_registration == self.request.GET.get('request_form'):
-                return form.add_error('invitation_token', 'Не корректный токен')
+            elif not token.who_registration == self.request.GET.get("request_form"):
+                return form.add_error("invitation_token", "Не корректный токен")
 
             else:
                 return token
         except ObjectDoesNotExist:
-            return form.add_error('invitation_token', 'Не корректный токен')
+            return form.add_error("invitation_token", "Не корректный токен")
 
-    def form_valid(self, form: MyUserForm, form_student_or_teacher: StudentRegistrationForm | TeacherRegistrationForm,
-                   token: TokenRegistration):
+    def form_valid(
+        self,
+        form: MyUserForm,
+        form_student_or_teacher: StudentRegistrationForm | TeacherRegistrationForm,
+        token: TokenRegistration,
+    ):
         model_user = form.save(commit=False)
         teacher_or_student = form_student_or_teacher.save(commit=False)
         if isinstance(form_student_or_teacher, StudentRegistrationForm):
@@ -76,7 +102,7 @@ class Register(View, TemplateResponseMixin):
         else:
             model_user.teacher = teacher_or_student
             self.save_user(model_user, teacher_or_student)
-            self.success_url = 'teacher'
+            self.success_url = "teacher"
         token.delete()
         return self.get_success_url(model_user)
 
@@ -86,20 +112,22 @@ class Register(View, TemplateResponseMixin):
         login(self.request, model_user)
 
     def get_form_for_teacher_or_student(self):
-        if self.request.GET.get('request_form') == 'student':
+        if self.request.GET.get("request_form") == "student":
             return StudentRegistrationForm
-        elif self.request.GET.get('request_form') == 'teacher':
+        elif self.request.GET.get("request_form") == "teacher":
             return TeacherRegistrationForm
 
     def get_context_data(self, **kwargs) -> dict:
-        kwargs['user'] = self.form
-        kwargs['registration'] = self.get_form_for_teacher_or_student()
+        kwargs["user"] = self.form
+        kwargs["registration"] = self.get_form_for_teacher_or_student()
         return kwargs
 
     def get_success_url(self, user) -> reverse_lazy:
-        if self.success_url == 'student':
-            return HttpResponseRedirect(reverse_lazy('student', kwargs={'username': user.username}))
-        return HttpResponseRedirect(reverse_lazy('teacher'))
+        if self.success_url == "student":
+            return HttpResponseRedirect(
+                reverse_lazy("student", kwargs={"username": user.username})
+            )
+        return HttpResponseRedirect(reverse_lazy("teacher"))
 
 
 class LoginUser(LoginView):
@@ -107,26 +135,30 @@ class LoginUser(LoginView):
     Login template return to console if user is teacher
     else return to profile user
     """
-    template_name = 'diary/login.html'
+
+    template_name = "diary/login.html"
 
     def get_success_url(self):
         if isinstance(self.request.user.student, StudentRegistration):
-            return reverse_lazy('student', kwargs={'username': self.request.user.username})
-        return reverse_lazy('teacher')
+            return reverse_lazy(
+                "student", kwargs={"username": self.request.user.username}
+            )
+        return reverse_lazy("teacher")
 
 
 def logout_user(request):
     logout(request)
-    return redirect('home', permanent=True)
+    return redirect("home", permanent=True)
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-@method_decorator(request_student, name='dispatch')
+@method_decorator(login_required(login_url="login"), name="dispatch")
+@method_decorator(request_student, name="dispatch")
 class HomeWork(ListView):
-    """ Student homework """
-    template_name = 'diary/homework.html'
+    """Student homework"""
+
+    template_name = "diary/homework.html"
     model = HomeWorkModel
-    context_object_name = 'homework'
+    context_object_name = "homework"
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -136,14 +168,14 @@ class HomeWork(ListView):
 
     def get_context_data(self, **kwargs):
         context = super(HomeWork, self).get_context_data(**kwargs)
-        context['requests'] = self.request
+        context["requests"] = self.request
         return context
 
 
 class Student(ListView):
     model = BookWithClass
-    template_name = 'diary/student.html'
-    context_object_name = 'books'
+    template_name = "diary/student.html"
+    context_object_name = "books"
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -152,25 +184,28 @@ class Student(ListView):
             evaluations[book.time_table.item.book_name] = get_evaluation_of_quarter(
                 self.request.user,
                 book.time_table.item.book_name,
-                self.request.GET.get('quarter')
+                self.request.GET.get("quarter"),
             )
         return evaluations
 
     def get_context_data(self, **kwargs):
         context = super(Student, self).get_context_data(**kwargs)
-        context['now_quarter'] = get_now_quarter()
-        context['all_quarter'] = Quarter.objects.all()
-        request_quarter = self.request.GET.get('quarter', None)
-        context['request_quarter'] = int(request_quarter) if request_quarter else get_now_quarter().pk
+        context["now_quarter"] = get_now_quarter()
+        context["all_quarter"] = Quarter.objects.all()
+        request_quarter = self.request.GET.get("quarter", None)
+        context["request_quarter"] = (
+            int(request_quarter) if request_quarter else get_now_quarter().pk
+        )
 
         return context
 
 
 class Teacher(FormView):
-    """ Teacher console, teacher can set homework and move to class   """
-    template_name = 'diary/teacher.html'
+    """Teacher console, teacher can set homework and move to class"""
+
+    template_name = "diary/teacher.html"
     form_class = NewHomeWorkForm
-    success_url = 'teacher'
+    success_url = "teacher"
 
     def form_valid(self, form):
         form.save()
@@ -178,23 +213,22 @@ class Teacher(FormView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['model'] = SchoolClass.objects.all()
+        context["model"] = SchoolClass.objects.all()
         return context
 
 
 class StudentsClass(ListView):
-    """ todo: user.evaluation_set.filter(quarter=some_quarter) """
-    template_name = 'diary/student_class.html'
+    """todo: user.evaluation_set.filter(quarter=some_quarter)"""
+
+    template_name = "diary/student_class.html"
     queryset = Quarter.objects.all()
-    context_object_name = 'quarters'
+    context_object_name = "quarters"
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-@method_decorator(request_teacher, name='dispatch')
+@method_decorator(login_required(login_url="login"), name="dispatch")
+@method_decorator(request_teacher, name="dispatch")
 def download_evaluations(request, class_number, slug_name):
-    file_data = get_excel(
-        request.user.teacher.item.book_name, class_number, slug_name
-    )
-    response = HttpResponse(file_data, content_type='application/vnd.ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="foo.xls"'
+    file_data = get_excel(request.user.teacher.item.book_name, class_number, slug_name)
+    response = HttpResponse(file_data, content_type="application/vnd.ms-excel")
+    response["Content-Disposition"] = 'attachment; filename="foo.xls"'
     return response
