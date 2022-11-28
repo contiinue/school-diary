@@ -1,5 +1,5 @@
 /data
 /set_env.sh
-*/__pycache__
 /media/*
 */migrations/
+__pycache__/

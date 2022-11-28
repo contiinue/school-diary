@@ -54,6 +54,54 @@ section {
 /* teacher page // table block */
 
 
+/* paginator */
+
+
+.pagination {
+    display: flex;
+    width: 100%;
+}
+
+.paginator_back_quarter {
+    margin-right: 0px;
+} 
+
+.paginator_info_quarter {
+    text-align: center;
+}
+
+.paginator_next_quarter {
+    text-align-last: left;
+}
+
+.th_name_student {
+    white-space: nowrap;
+    position: sticky;
+    left: 0;
+    z-index: 10;
+
+}
+
+.average_evaluation {
+    position: absolute;
+    white-space: nowrap;
+    position: sticky;
+    right: 0;
+}
+
+/* table block */
+
+thead,
+tbody {
+  display: block;
+  position: relative;
+}
+
+tbody {
+  max-width: 1320px;
+  overflow: auto;
+}
+
 .table {
     -moz-user-select: none;
     -khtml-user-select: none;
@@ -69,14 +117,12 @@ tr:hover {
     position: sticky;
     top: 0;
     background-color: blue;
-    z-index: 1;
     min-width: 70px;
 }
 
 .info_block_for_evaluations {
     width: 0px;
     height: 0px;
-    z-index: 100;
 }
 
 .td_evaluation {

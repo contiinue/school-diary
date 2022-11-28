@@ -56,10 +56,10 @@ class ApiSetEvaluation(
     def delete(self, request, *args, **kwargs):
         return self.destroy(request, args, kwargs)
 
-    def get_data(self, request) -> dict:
+    @staticmethod
+    def get_data(request) -> dict:
         my_request = request.POST.copy()
-        my_request.setdefault("item", self.request.user.teacher.item.pk)
-        my_request.setdefault("quarter", get_now_quarter().pk)
+        my_request.setdefault("item", request.user.teacher.item.pk)
         return my_request
 
     def get_serializer(self, *args, **kwargs):
@@ -70,7 +70,7 @@ class ApiSetEvaluation(
 
     def get_queryset(self):
         if self.request.GET:
-            quarter = get_now_quarter(self.request.GET.get("quarter"))
+            quarter = get_now_quarter(self.request.GET.get("quarter", False))
             users = MyUser.objects.filter(
                 student__learned_class__number_class=self.request.GET.get(
                     "class_number"
