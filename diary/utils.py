@@ -1,6 +1,7 @@
 from functools import wraps
 
-from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 
 def request_teacher(view):
@@ -9,7 +10,7 @@ def request_teacher(view):
     @wraps(view)
     def _view(request, *args, **kwargs):
         if not request.user.teacher:
-            raise PermissionDenied
+            return HttpResponseRedirect(reverse("home"), status=403)
         return view(request, *args, **kwargs)
 
     return _view
@@ -21,11 +22,8 @@ def request_student(view):
 
     @wraps(view)
     def _view(request, *args, **kwargs):
-        if not (
-            request.user.username == kwargs["username"]
-            or request.user.is_student == "teacher"
-        ):
-            raise PermissionDenied
+        if not request.user.student or request.user.teacher:
+            return HttpResponseRedirect(reverse("home"), status=403)
         return view(request, *args, **kwargs)
 
     return _view

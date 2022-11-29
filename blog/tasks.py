@@ -1,8 +1,8 @@
+from diary.models import MyUser
 from schooldiary.celery import app
-from services.mailchimp import send_email, get_text_for_mailing_article
+from services.mailchimp import get_text_for_mailing_article, send_email
 
 from .models import SchoolArticle
-from diary.models import MyUser
 
 
 @app.task

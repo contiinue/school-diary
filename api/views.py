@@ -1,5 +1,6 @@
-from rest_framework import viewsets
-from rest_framework import mixins
+from datetime import date, timedelta
+
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,15 +8,12 @@ from rest_framework.views import APIView
 from api.my_permissions import IsTeacherPermissions
 from api.serializers import (
     EvaluationSerializer,
-    SetEvaluationSerializer,
     MyUserSerializer,
+    SetEvaluationSerializer,
     StudentRegistrationSerializer,
 )
-from services.get_evaluations_of_quarter import (
-    get_now_quarter,
-)
-from diary.models import MyUser, BookWithClass, Evaluation, StudentRegistration, Quarter
-from datetime import date, timedelta
+from diary.models import BookWithClass, Evaluation, MyUser, Quarter, StudentRegistration
+from services.get_evaluations_of_quarter import get_now_quarter
 
 
 class MyUserApi(viewsets.ModelViewSet):

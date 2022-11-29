@@ -2,8 +2,8 @@ import time
 
 import openpyxl
 
-from services.get_evaluations_of_quarter import get_evaluation_of_quarter
 from diary.models import MyUser, Quarter
+from services.get_evaluations_of_quarter import get_evaluation_of_quarter
 
 
 def _get_users(number_class: int, slug_name: str) -> list[MyUser]:

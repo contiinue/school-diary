@@ -1,6 +1,7 @@
+from django.urls import include, path
 from rest_framework import routers
-from django.urls import path, include
-from .views import ApiSetEvaluation, SchoolTimetableApi, MyUserApi, StudentApi
+
+from .views import ApiSetEvaluation, MyUserApi, SchoolTimetableApi, StudentApi
 
 router = routers.DefaultRouter()
 router.register("evaluation", ApiSetEvaluation, basename="evaluation")

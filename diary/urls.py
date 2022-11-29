@@ -1,14 +1,15 @@
 from django.urls import path
+
 from diary.views import (
     HomePage,
-    Student,
-    Teacher,
-    Register,
-    LoginUser,
-    logout_user,
     HomeWork,
+    LoginUser,
+    Register,
+    Student,
     StudentsClass,
+    Teacher,
     download_evaluations,
+    logout_user,
 )
 
 urlpatterns = [

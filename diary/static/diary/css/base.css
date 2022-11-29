@@ -78,7 +78,8 @@ section {
     white-space: nowrap;
     position: sticky;
     left: 0;
-    z-index: 10;
+    z-index: 100;
+    width: 100%;
 
 }
 
@@ -116,14 +117,9 @@ tr:hover {
     text-align: center;
     position: sticky;
     top: 0;
-    background-color: blue;
     min-width: 70px;
 }
 
-.info_block_for_evaluations {
-    width: 0px;
-    height: 0px;
-}
 
 .td_evaluation {
     text-align: center;
@@ -136,7 +132,6 @@ tr:hover {
 .td_evaluation, .input_evaluation, .th_name_student {
     height: 100%;
     width: 100%;
-    max-width: 100px;
 }
 
 .input_evaluation {

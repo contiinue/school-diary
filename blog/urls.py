@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import ListArticles, Article, CreateArticle
+
+from .views import Article, CreateArticle, ListArticles
 
 urlpatterns = [
     path("", ListArticles.as_view(), name="blog"),

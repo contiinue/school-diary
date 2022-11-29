@@ -1,7 +1,7 @@
+from django.contrib.auth.models import AbstractUser, UserManager
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .fields import TokenAutorizateField
 
@@ -46,6 +46,18 @@ class TokenRegistration(models.Model):
         return self.token
 
 
+class MyUserManager(UserManager):
+    def create_user(self, username, email=None, password=None, **extra_fields):
+        main_field = (extra_fields.get("teacher"), extra_fields.get("student"))
+        if any(main_field) is False or all(main_field) is True:
+            raise ValueError("Вы должны зарегистрировать ученика или учителя")
+        elif not extra_fields.get("invitation_token"):
+            raise ValueError("Пригласительный токен обязателен для регистрации")
+        return super(MyUserManager, self).create_user(
+            username, email, password, **extra_fields
+        )
+
+
 class MyUser(AbstractUser):
     """
     Base User registration , user has attributes ( base + teacher | student, age, class  )
@@ -59,6 +71,8 @@ class MyUser(AbstractUser):
         TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True
     )
     invitation_token = models.CharField(max_length=33, null=True)
+
+    objects = MyUserManager()
 
     class Meta:
         ordering = ["-first_name"]

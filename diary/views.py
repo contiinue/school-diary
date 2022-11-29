@@ -1,39 +1,38 @@
+from datetime import datetime
+
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, HttpResponseRedirect
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.generic import FormView, ListView, TemplateView, View
 from django.views.generic.base import TemplateResponseMixin
 
+from schooldiary.settings import invitation_token_expiration_date
 from services.excel_evaluations import get_excel
 from services.get_evaluations_of_quarter import (
-    get_now_quarter,
     get_evaluation_of_quarter,
+    get_now_quarter,
 )
 
-from schooldiary.settings import invitation_token_expiration_date
-from .models import (
-    TokenRegistration,
-    StudentRegistration,
-    HomeWorkModel,
-    BookWithClass,
-    Quarter,
-    SchoolClass,
-)
-from .utils import request_student, request_teacher
 from .forms import (
     MyUserForm,
     NewHomeWorkForm,
     StudentRegistrationForm,
     TeacherRegistrationForm,
 )
-
-from django.urls import reverse_lazy
-from django.contrib.auth import login, logout
-from django.contrib.auth.views import LoginView
-from django.views.generic import ListView, FormView, TemplateView, View
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from django.core.exceptions import ObjectDoesNotExist
-
-from datetime import datetime
+from .models import (
+    BookWithClass,
+    HomeWorkModel,
+    Quarter,
+    SchoolClass,
+    StudentRegistration,
+    TokenRegistration,
+)
+from .utils import request_student, request_teacher
 
 
 class HomePage(TemplateView):
@@ -172,6 +171,8 @@ class HomeWork(ListView):
         return context
 
 
+@method_decorator(login_required(login_url="login"), name="dispatch")
+@method_decorator(request_student, name="dispatch")
 class Student(ListView):
     model = BookWithClass
     template_name = "diary/student.html"
@@ -200,6 +201,8 @@ class Student(ListView):
         return context
 
 
+@method_decorator(login_required(login_url="login"), name="dispatch")
+@method_decorator(request_teacher, name="dispatch")
 class Teacher(FormView):
     """Teacher console, teacher can set homework and move to class"""
 
@@ -217,9 +220,11 @@ class Teacher(FormView):
         return context
 
 
+@method_decorator(login_required(login_url="login"), name="dispatch")
+@method_decorator(request_teacher, name="dispatch")
 class StudentsClass(ListView):
     template_name = "diary/student_class.html"
-    queryset = Quarter.objects.all()
+    queryset = Quarter.objects.all().order_by("start")
     context_object_name = "quarters"
 
 

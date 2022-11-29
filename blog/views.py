@@ -1,11 +1,11 @@
 from datetime import timedelta
 
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, FormView
+from django.views.generic import DetailView, FormView, ListView
 
-from .tasks import mailing_list_articles
 from .forms import ArticleForm
 from .models import SchoolArticle
+from .tasks import mailing_list_articles
 
 
 class ListArticles(ListView):
