@@ -1,8 +1,10 @@
 from datetime import date, timedelta
 
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.status import HTTP_204_NO_CONTENT
 from rest_framework.views import APIView
 
 from api.my_permissions import IsTeacherPermissions
@@ -12,6 +14,7 @@ from api.serializers import (
     SetEvaluationSerializer,
     StudentRegistrationSerializer,
 )
+
 from diary.models import BookWithClass, Evaluation, MyUser, Quarter, StudentRegistration
 from services.get_evaluations_of_quarter import get_now_quarter
 
@@ -56,6 +59,7 @@ class ApiSetEvaluation(
 
     @staticmethod
     def get_data(request) -> dict:
+        """ set teacher item to request. """
         my_request = request.POST.copy()
         my_request.setdefault("item", request.user.teacher.item.pk)
         return my_request
@@ -67,6 +71,7 @@ class ApiSetEvaluation(
         return super(ApiSetEvaluation, self).get_serializer(*args, **kwargs)
 
     def get_queryset(self):
+        """ Get students with their grades for the quarter. """
         if self.request.GET:
             quarter = get_now_quarter(self.request.GET.get("quarter", False))
             users = MyUser.objects.filter(
@@ -83,31 +88,42 @@ class ApiSetEvaluation(
 
 class SchoolTimetableApi(APIView):
     def get(self, request, *args, **kwargs):
+        """ Get timetable of quarter. """
+        dates = self.get_queryset()
+        if dates is None:
+            return Response(status=HTTP_204_NO_CONTENT)
         return Response({"dates": self.get_queryset()})
 
-    def get_queryset(self) -> list[str]:
+    def get_queryset(self) -> list[str] | None:
+        """Get timetable dates or None"""
         quarter = (
             Quarter.objects.get(pk=self.request.GET.get("quarter"))
             if self.request.GET.get("quarter")
             else get_now_quarter()
         )
-
-        time_table = BookWithClass.objects.select_related(
-            "time_table", "student_class"
-        ).get(
-            student_class__number_class=self.kwargs.get("class_number"),
-            student_class__slug=self.kwargs.get("slug_name"),
-            time_table__item__book_name=self.request.user.teacher.item.book_name,
-            time_table__quarter__pk=quarter.pk,
-        )
-        return self.get_days_of_quarter(
-            quarter.start,
-            quarter.end,
-            [i.number_of_week_day() for i in time_table.time_table.lesson_date.all()],
-        )
+        try:
+            time_table = BookWithClass.objects.select_related(
+                "time_table", "student_class"
+            ).get(
+                student_class__number_class=self.kwargs.get("class_number"),
+                student_class__slug=self.kwargs.get("slug_name"),
+                time_table__item__book_name=self.request.user.teacher.item.book_name,
+                time_table__quarter__pk=quarter.pk,
+            )
+            return self.get_days_of_quarter(
+                quarter.start,
+                quarter.end,
+                [
+                    i.number_of_week_day()
+                    for i in time_table.time_table.lesson_date.all()
+                ],
+            )
+        except ObjectDoesNotExist:
+            return None
 
     @staticmethod
     def get_days_of_quarter(start: date, end: date, week_day: list) -> list[str]:
+        """Get dates between start and end"""
         total_days: int = (end - start).days + 1
         all_days = [start + timedelta(days=day) for day in range(total_days)]
         return [

@@ -31,7 +31,3 @@ class SetEvaluationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Evaluation
         fields = ("id", "student", "evaluation", "item", "quarter", "date")
-
-
-class SchoolTimetableSerializer(serializers.Serializer):
-    some = serializers.CharField(max_length=30)

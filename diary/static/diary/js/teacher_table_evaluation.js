@@ -127,6 +127,9 @@ async function getDates() {
   let some_dates = Array()
   let link = window.location.href.replace('?', '').split('/').slice(4)
   let r = await fetch(`http://127.0.0.1:8000/api/timetable/${link[0]}/${link[1]}?${link[2]}`)
+  if (r.status === 204) {
+    return
+  }
   let response = await r.json()
   let info_first_elem = document.createElement('th')
   info_first_elem.innerHTML = '#'
@@ -163,7 +166,7 @@ function getAverageEvaluation (array_evaluations) {
   let average_evaluation = document.createElement('th')
   const average = summ / len
 
-  average_evaluation.innerHTML = isNaN(average) ?  0 : average.toFixed(2)
+  average_evaluation.innerHTML = isNaN(average) ?  '0.00' : average.toFixed(2)
   average_evaluation.classList.add('text-center', 'average_evaluation', 'bg-light')
   return average_evaluation
 }
@@ -220,16 +223,22 @@ async function getStudents() {
 async function getTableOfEvaliations() {
   let tr = document.getElementById('info_block_for_evaluations')
   let dates = await getDates()
-  for (let elem of dates) {
-    tr.append(elem) 
-  }
-  getStudents()
-  for (let date of tr.children) {
-    if (new Date() <= date.date) {
-      a.firstElementChild.scrollLeft += date.offsetLeft
+  if (dates) {
+    for (let elem of dates) {
+      tr.append(elem) 
+    }
+    getStudents()
+    for (let date of tr.children) {
+      console.log(date.offsetLeft)
+      if (new Date() < date.date) {
+        // a.firstElementChild.scrollLeft += date.offsetLeft - 70
+        date.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+
+        break
+      }
+
     }
   }
-   
 }
 
 getTableOfEvaliations()

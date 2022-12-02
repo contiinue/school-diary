@@ -178,16 +178,15 @@ class Student(ListView):
     template_name = "diary/student.html"
     context_object_name = "books"
 
-    def get_queryset(self):
+    def get_queryset(self, **kwargs):
         qs = super().get_queryset()
-        evaluations = {}
         for book in qs:
-            evaluations[book.time_table.item.book_name] = get_evaluation_of_quarter(
+            kwargs[book.time_table.item.book_name] = get_evaluation_of_quarter(
                 self.request.user,
                 book.time_table.item.book_name,
                 self.request.GET.get("quarter"),
             )
-        return evaluations
+        return kwargs
 
     def get_context_data(self, **kwargs):
         context = super(Student, self).get_context_data(**kwargs)
@@ -204,7 +203,7 @@ class Student(ListView):
 @method_decorator(login_required(login_url="login"), name="dispatch")
 @method_decorator(request_teacher, name="dispatch")
 class Teacher(FormView):
-    """Teacher console, teacher can set homework and move to class"""
+    """Teacher console, teacher can set homework and move to class."""
 
     template_name = "diary/teacher.html"
     form_class = NewHomeWorkForm

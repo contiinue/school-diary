@@ -21,6 +21,10 @@ section {
 }
 
 
+.image-previe {
+    max-height: 490px;
+}
+
 /* Registraton page */
 
 .registration_ask {
@@ -98,6 +102,7 @@ tbody {
   position: relative;
 }
 
+
 tbody {
   max-width: 1320px;
   overflow: auto;
@@ -113,11 +118,13 @@ tr:hover {
     background-color: #e0e0e0;
 }
 
+
 .info_th {
     text-align: center;
     position: sticky;
     top: 0;
     min-width: 70px;
+    justify-content: space-between;
 }
 
 

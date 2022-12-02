@@ -11,6 +11,7 @@ from diary.models import (
 
 
 class MyUserForm(UserCreationForm):
+    """ Register User. """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -21,7 +22,7 @@ class MyUserForm(UserCreationForm):
         label="Пароль", widget=forms.PasswordInput(attrs={"class": "form-control"})
     )
     password2 = forms.CharField(
-        label="Потверждение пароля",
+        label="Подтверждение пароля",
         widget=forms.PasswordInput(attrs={"class": "form-control"}),
     )
 
@@ -67,6 +68,7 @@ class TeacherRegistrationForm(forms.ModelForm):
 
 
 class StudentRegistrationForm(forms.ModelForm):
+    """  """
     class Meta:
         model = StudentRegistration
         fields = ("age",)
