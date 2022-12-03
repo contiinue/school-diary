@@ -66,7 +66,10 @@ async function updateEvaluation(pk, evaluation, date) {
 async function setEvaluation(student_id, evaluation, date, elem) {
   let data = getData(student_id, evaluation, date)
   let headers = getHeadets()
-  data.append('quarter', window.location.href.replace('?', '').split('/').slice(4)[2].split('=')[1])
+  quarter = window.location.href.replace('?', '').split('/').slice(4)[2].split('=')[1]
+  if (quarter) {
+    data.append('quarter', quarter)
+  }
   let response = await fetch('http://127.0.0.1:8000/api/evaluation/set_evaluation/', {
     method: 'post',
     body: data,

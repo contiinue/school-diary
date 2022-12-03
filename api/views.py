@@ -59,9 +59,12 @@ class ApiSetEvaluation(
 
     @staticmethod
     def get_data(request) -> dict:
-        """ set teacher item to request. """
+        """set teacher item to request."""
         my_request = request.POST.copy()
         my_request.setdefault("item", request.user.teacher.item.pk)
+        my_request.setdefault(
+            "quarter", get_now_quarter(request.GET.get("quarter", False)).pk
+        )
         return my_request
 
     def get_serializer(self, *args, **kwargs):
@@ -71,7 +74,7 @@ class ApiSetEvaluation(
         return super(ApiSetEvaluation, self).get_serializer(*args, **kwargs)
 
     def get_queryset(self):
-        """ Get students with their grades for the quarter. """
+        """Get students with their grades for the quarter."""
         if self.request.GET:
             quarter = get_now_quarter(self.request.GET.get("quarter", False))
             users = MyUser.objects.filter(
@@ -79,6 +82,7 @@ class ApiSetEvaluation(
                     "class_number"
                 ),
                 student__learned_class__slug=self.request.GET.get("slug_name"),
+                school=self.request.user.school,
             )
             for user in users:
                 user.evaluation = user.evaluation_set.filter(quarter=quarter)
@@ -88,7 +92,7 @@ class ApiSetEvaluation(
 
 class SchoolTimetableApi(APIView):
     def get(self, request, *args, **kwargs):
-        """ Get timetable of quarter. """
+        """Get timetable of quarter."""
         dates = self.get_queryset()
         if dates is None:
             return Response(status=HTTP_204_NO_CONTENT)
@@ -109,6 +113,7 @@ class SchoolTimetableApi(APIView):
                 student_class__slug=self.kwargs.get("slug_name"),
                 time_table__item__book_name=self.request.user.teacher.item.book_name,
                 time_table__quarter__pk=quarter.pk,
+                school=self.request.user.school,
             )
             return self.get_days_of_quarter(
                 quarter.start,

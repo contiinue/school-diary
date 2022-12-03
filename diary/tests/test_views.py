@@ -8,18 +8,19 @@ from diary.models import (
     StudentRegistration,
     TeacherRegistration,
     TokenRegistration,
+    School,
 )
 
 
 class RegistrationTests(TestCase):
     def test_create_student(self):
         """testing registration form for student."""
-
+        school = School.objects.create(name_school="some_name_school")
         student_class = SchoolClass.objects.create(
-            number_class=1, name_class="A", slug="a"
+            number_class=1, name_class="A", slug="a", school=school
         )
         token = TokenRegistration.objects.create(
-            who_registration="student", student_class=student_class
+            who_registration="student", student_class=student_class, school=school
         )
         url = f'{reverse("register")}?request_form=student'
 
@@ -44,9 +45,11 @@ class RegistrationTests(TestCase):
 
     def test_create_teacher(self):
         """testing registration form for teacher."""
-
+        school = School.objects.create(name_school="some_name_school")
         book = Books.objects.create(book_name="some_name_book")
-        token = TokenRegistration.objects.create(who_registration="teacher")
+        token = TokenRegistration.objects.create(
+            who_registration="teacher", school=school
+        )
         url = f'{reverse("register")}?request_form=teacher'
         response = self.client.post(
             url,
@@ -72,14 +75,15 @@ class PermissionsTest(TestCase):
     def setUp(self) -> None:
         """Create Student and Teacher model and more models for registration."""
         book = Books.objects.create(book_name="some_book")
+        school = School.objects.create(name_school="some_name_school")
         student_class = SchoolClass.objects.create(
-            number_class=1, name_class="A", slug="a"
+            number_class=1, name_class="A", slug="a", school=school
         )
         self.teacher_token = TokenRegistration.objects.create(
-            who_registration="teacher"
+            who_registration="teacher", school=school
         )
         self.student_token = TokenRegistration.objects.create(
-            who_registration="student", student_class=student_class
+            who_registration="student", student_class=student_class, school=school
         )
 
         self.teacher_model = TeacherRegistration.objects.create(item=book)

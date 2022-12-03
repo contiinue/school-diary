@@ -92,8 +92,10 @@ class Register(View, TemplateResponseMixin):
         form_student_or_teacher: StudentRegistrationForm | TeacherRegistrationForm,
         token: TokenRegistration,
     ):
+        """Add information from token to user_model and save."""
         model_user = form.save(commit=False)
         teacher_or_student = form_student_or_teacher.save(commit=False)
+        model_user.school = token.school
         if isinstance(form_student_or_teacher, StudentRegistrationForm):
             teacher_or_student.learned_class = token.student_class
             model_user.student = teacher_or_student
@@ -162,7 +164,8 @@ class HomeWork(ListView):
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.filter(
-            student_class=self.request.user.student.learned_class.number_class
+            student_class=self.request.user.student.learned_class.number_class,
+            school=self.request.user.school,
         )
 
     def get_context_data(self, **kwargs):
@@ -184,14 +187,16 @@ class Student(ListView):
             kwargs[book.time_table.item.book_name] = get_evaluation_of_quarter(
                 self.request.user,
                 book.time_table.item.book_name,
-                self.request.GET.get("quarter"),
+                self.request.GET.get("quarter", False),
             )
         return kwargs
 
     def get_context_data(self, **kwargs):
         context = super(Student, self).get_context_data(**kwargs)
         context["now_quarter"] = get_now_quarter()
-        context["all_quarter"] = Quarter.objects.all()
+        context["all_quarter"] = Quarter.objects.filter(
+            school=self.request.user.school
+        ).order_by("start")
         request_quarter = self.request.GET.get("quarter", None)
         context["request_quarter"] = (
             int(request_quarter) if request_quarter else get_now_quarter().pk
@@ -210,12 +215,14 @@ class Teacher(FormView):
     success_url = "teacher"
 
     def form_valid(self, form):
+        form = form.save(commit=False)
+        form.school = self.request.user.school
         form.save()
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["model"] = SchoolClass.objects.all()
+        context["model"] = SchoolClass.objects.filter(school=self.request.user.school)
         return context
 
 
@@ -225,6 +232,9 @@ class StudentsClass(ListView):
     template_name = "diary/student_class.html"
     queryset = Quarter.objects.all().order_by("start")
     context_object_name = "quarters"
+
+    def get_queryset(self):
+        return super().get_queryset().filter(school=self.request.user.school)
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")

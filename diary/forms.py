@@ -11,7 +11,8 @@ from diary.models import (
 
 
 class MyUserForm(UserCreationForm):
-    """ Register User. """
+    """Register User."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -68,7 +69,8 @@ class TeacherRegistrationForm(forms.ModelForm):
 
 
 class StudentRegistrationForm(forms.ModelForm):
-    """  """
+    """ """
+
     class Meta:
         model = StudentRegistration
         fields = ("age",)
@@ -86,7 +88,7 @@ class NewHomeWorkForm(forms.ModelForm):
 
     class Meta:
         model = HomeWorkModel
-        fields = "__all__"
+        fields = ("item", "student_class", "home_work", "date_end_of_homework")
 
         widgets = {
             "item": forms.Select(attrs={"class": "form-control"}),

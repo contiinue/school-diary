@@ -32,6 +32,13 @@ class TeacherRegistration(UserRegistrationMixin):
     )
 
 
+class School(models.Model):
+    name_school = models.CharField(max_length=127)
+
+    def __str__(self):
+        return self.name_school
+
+
 class TokenRegistration(models.Model):
     who_registration_choices = (("teacher", "Учитель"), ("student", "Студент/Родитель"))
 
@@ -41,6 +48,7 @@ class TokenRegistration(models.Model):
     student_class = models.ForeignKey(
         "SchoolClass", on_delete=models.CASCADE, null=True
     )
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.token
@@ -71,7 +79,7 @@ class MyUser(AbstractUser):
         TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True
     )
     invitation_token = models.CharField(max_length=33, null=True)
-
+    school = models.ForeignKey(School, on_delete=models.CASCADE, null=True)
     objects = MyUserManager()
 
     class Meta:
@@ -92,6 +100,7 @@ class HomeWorkModel(models.Model):
     date_end_of_homework = models.DateField(
         null=True, verbose_name="До какого числа домашнее задание актуально"
     )
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     def __str__(self):
         return self.item.book_name
@@ -103,6 +112,7 @@ class SchoolClass(models.Model):
     number_class = models.IntegerField(null=True)
     name_class = models.CharField(max_length=15)
     slug = models.SlugField(max_length=15)
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     class Meta:
         ordering = ["number_class", "name_class"]
@@ -155,10 +165,11 @@ class SchoolTimetable(models.Model):
 
 
 class BookWithClass(models.Model):
-    """base book for student class, it was done for flexibility"""
+    """base books for student class, it was done for flexibility"""
 
     time_table = models.ForeignKey(SchoolTimetable, on_delete=models.CASCADE)
     student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE)
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     def __str__(self):
         return "{} - {}{} четверть - {}".format(
@@ -173,6 +184,7 @@ class Quarter(models.Model):
     name = models.CharField(max_length=30)
     start = models.DateField()
     end = models.DateField()
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     def __str__(self):
         return "{}".format(self.name)

@@ -12,6 +12,7 @@ from .models import (
     SchoolClass,
     SchoolTimetable,
     TokenRegistration,
+    School,
 )
 
 
@@ -29,5 +30,6 @@ admin.site.register(Quarter)
 admin.site.register(SchoolTimetable)
 admin.site.register(DayOfWeak)
 admin.site.register(TokenRegistration)
+admin.site.register(School)
 
 # Register your models here.
