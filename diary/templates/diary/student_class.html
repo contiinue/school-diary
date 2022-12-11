@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<div class="container-xxl">
+<div class="container">
     <h2>Оценки по предмету: {{ request.user.teacher.item.book_name }}, {{ student_class_number.number_class }} {{ student_class_number.name_class }} класса</h2>
     <section>
         <div class="quarters">
@@ -15,15 +15,8 @@
                     <a class="btn btn-dark" href="{% url 'student-class' slug_name='a' class_number=1 %}?quarter={{ i.pk }}">{{ i.name }}</a>
                 {% endif %}
             {% endfor %}
-<<<<<<< HEAD
-        <table class="table" id="table">
+        <table class="evaluations_table table" id="evaluations_table">
             <tr id="info_block_for_evaluations">
-=======
-        </div>
-        <table class="table" id="table">
-            <tr id="info_block_for_evaluations">
-                <th>#</th>
->>>>>>> parent of 42dd138 (fix. normalizate table students evaluation on teacher page)
             </tr>
         </table>
     </section>

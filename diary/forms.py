@@ -1,15 +1,18 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+
 from diary.models import (
-    MyUser,
-    HomeWorkModel,
     Evaluation,
-    TeacherRegistration,
+    HomeWorkModel,
+    MyUser,
     StudentRegistration,
+    TeacherRegistration,
 )
 
 
 class MyUserForm(UserCreationForm):
+    """Register User."""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -20,7 +23,7 @@ class MyUserForm(UserCreationForm):
         label="Пароль", widget=forms.PasswordInput(attrs={"class": "form-control"})
     )
     password2 = forms.CharField(
-        label="Потверждение пароля",
+        label="Подтверждение пароля",
         widget=forms.PasswordInput(attrs={"class": "form-control"}),
     )
 
@@ -66,6 +69,8 @@ class TeacherRegistrationForm(forms.ModelForm):
 
 
 class StudentRegistrationForm(forms.ModelForm):
+    """ """
+
     class Meta:
         model = StudentRegistration
         fields = ("age",)
@@ -83,7 +88,7 @@ class NewHomeWorkForm(forms.ModelForm):
 
     class Meta:
         model = HomeWorkModel
-        fields = "__all__"
+        fields = ("item", "student_class", "home_work", "date_end_of_homework")
 
         widgets = {
             "item": forms.Select(attrs={"class": "form-control"}),
