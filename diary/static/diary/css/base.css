@@ -71,6 +71,9 @@ tbody {
     user-select: none;
 }
 
+.info_th {
+    text-align: center;
+}
 
 .tr_evaluations:hover {
     background-color: #e0e0e0;
