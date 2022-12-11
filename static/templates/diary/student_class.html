@@ -1,0 +1,31 @@
+{% extends "diary/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-xxl">
+    <h2>Оценки по предмету: {{ request.user.teacher.item.book_name }}, {{ student_class_number.number_class }} {{ student_class_number.name_class }} класса</h2>
+    <section>
+        <div class="quarters">
+            <span class="span_quarters">Четверти: </span>
+            {% for i in quarters %}
+                {% if i.id == request_quarter %}
+                <a class="btn btn-info" href="{% url 'student-class' slug_name='a' class_number=1 %}?quarter={{ i.pk }}">{{ i.name }}</a>
+                {% else %}
+                    <a class="btn btn-dark" href="{% url 'student-class' slug_name='a' class_number=1 %}?quarter={{ i.pk }}">{{ i.name }}</a>
+                {% endif %}
+            {% endfor %}
+        <table class="table" id="table">
+            <tr id="info_block_for_evaluations">
+            </tr>
+        </table>
+    </section>
+</div>
+
+<div class="some" id="sos"></div>
+{% endblock %}
+
+
+{% block front %}
+<script src="{% static 'diary/js/teacher_table_evaluation.js'%}"></script>
+{% endblock %}
