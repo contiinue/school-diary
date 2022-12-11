@@ -18,7 +18,7 @@ def _get_users(number_class: int, slug_name: str) -> list[MyUser]:
 def _get_evaluations_user(users: list[MyUser], item: str) -> list[MyUser]:
     """Get evaluations of users"""
     for user in users:
-        user.evaluations_of_item = dict()
+        user.evaluations_of_item = {}
         for quarter in Quarter.objects.all():
             evaluations = get_evaluation_of_quarter(user, item, quarter.pk)
             user.evaluations_of_item.setdefault(quarter.pk, evaluations)
@@ -33,12 +33,12 @@ def create_excel() -> openpyxl.Workbook:
 
 
 def collecting_date(users: list[MyUser]) -> list[tuple]:
-    date = list()
+    date = []
     for user in users:
-        evaluations = list()
+        evaluations = []
         for i in user.evaluations_of_item.items():
-            for evals in i[1]:
-                evaluations.append(evals.evaluation)
+            for evaluation in i[1]:
+                evaluations.append(evaluation.evaluation)
 
         date.append((user.first_name, user.last_name, *evaluations))
 
@@ -59,7 +59,6 @@ def get_excel(item, number_class: int, slug_name: str) -> bytes:
     date = collecting_date(evaluations_of_user)
     write_data_to_excel(date, excel)
     time.sleep(10)
-    print("я все")
     return b""
 
 

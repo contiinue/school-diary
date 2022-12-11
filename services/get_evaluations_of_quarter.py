@@ -10,7 +10,7 @@ def get_evaluation(student, quarter: Quarter, item) -> list[Evaluation]:
 
 
 def get_now_quarter(quarter: int = 0) -> Quarter:
-    if quarter is False:
+    if quarter is False or quarter == 0:
         now = datetime.today().date()
         return get_object_or_404(Quarter, start__lte=now, end__gte=now)
 

@@ -1,7 +1,7 @@
+from django.contrib.auth.models import AbstractUser, UserManager
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
-from django.contrib.auth.models import AbstractUser
-from django.core.validators import MaxValueValidator, MinValueValidator
 
 from .fields import TokenAutorizateField
 
@@ -32,6 +32,13 @@ class TeacherRegistration(UserRegistrationMixin):
     )
 
 
+class School(models.Model):
+    name_school = models.CharField(max_length=127)
+
+    def __str__(self):
+        return self.name_school
+
+
 class TokenRegistration(models.Model):
     who_registration_choices = (("teacher", "Учитель"), ("student", "Студент/Родитель"))
 
@@ -41,9 +48,22 @@ class TokenRegistration(models.Model):
     student_class = models.ForeignKey(
         "SchoolClass", on_delete=models.CASCADE, null=True
     )
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.token
+
+
+class MyUserManager(UserManager):
+    def create_user(self, username, email=None, password=None, **extra_fields):
+        main_field = (extra_fields.get("teacher"), extra_fields.get("student"))
+        if any(main_field) is False or all(main_field) is True:
+            raise ValueError("Вы должны зарегистрировать ученика или учителя")
+        elif not extra_fields.get("invitation_token"):
+            raise ValueError("Пригласительный токен обязателен для регистрации")
+        return super(MyUserManager, self).create_user(
+            username, email, password, **extra_fields
+        )
 
 
 class MyUser(AbstractUser):
@@ -59,6 +79,8 @@ class MyUser(AbstractUser):
         TeacherRegistration, on_delete=models.CASCADE, null=True, blank=True
     )
     invitation_token = models.CharField(max_length=33, null=True)
+    school = models.ForeignKey(School, on_delete=models.CASCADE, null=True)
+    objects = MyUserManager()
 
     class Meta:
         ordering = ["-first_name"]
@@ -78,6 +100,7 @@ class HomeWorkModel(models.Model):
     date_end_of_homework = models.DateField(
         null=True, verbose_name="До какого числа домашнее задание актуально"
     )
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     def __str__(self):
         return self.item.book_name
@@ -89,6 +112,7 @@ class SchoolClass(models.Model):
     number_class = models.IntegerField(null=True)
     name_class = models.CharField(max_length=15)
     slug = models.SlugField(max_length=15)
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     class Meta:
         ordering = ["number_class", "name_class"]
@@ -141,10 +165,11 @@ class SchoolTimetable(models.Model):
 
 
 class BookWithClass(models.Model):
-    """base book for student class, it was done for flexibility"""
+    """base books for student class, it was done for flexibility"""
 
     time_table = models.ForeignKey(SchoolTimetable, on_delete=models.CASCADE)
     student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE)
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     def __str__(self):
         return "{} - {}{} четверть - {}".format(
@@ -159,6 +184,7 @@ class Quarter(models.Model):
     name = models.CharField(max_length=30)
     start = models.DateField()
     end = models.DateField()
+    school = models.ForeignKey(School, on_delete=models.PROTECT)
 
     def __str__(self):
         return "{}".format(self.name)
@@ -167,7 +193,7 @@ class Quarter(models.Model):
 class Evaluation(models.Model):
     """the student's grades related to the course"""
 
-    eval = [
+    evaluation_choices = [
         (1, 1),
         (2, 2),
         (3, 3),
@@ -176,7 +202,7 @@ class Evaluation(models.Model):
     ]
     student = models.ForeignKey(MyUser, blank=True, on_delete=models.CASCADE)
     item = models.ForeignKey(Books, on_delete=models.CASCADE, blank=True)
-    evaluation = models.IntegerField(choices=eval)
+    evaluation = models.IntegerField(choices=evaluation_choices)
     quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, blank=True)
     date = models.DateField()
 
