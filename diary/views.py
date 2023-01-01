@@ -182,11 +182,18 @@ class Student(ListView):
     context_object_name = "books"
 
     def get_queryset(self, **kwargs):
-        qs = super().get_queryset()
-        for book in qs:
-            kwargs[book.time_table.item.book_name] = get_evaluation_of_quarter(
+        qs = (
+            super()
+            .get_queryset()
+            .get(
+                school=self.request.user.school,
+                student_class=self.request.user.student.learned_class,
+            )
+        )
+        for book in qs.items.all():
+            kwargs[book.book_name] = get_evaluation_of_quarter(
                 self.request.user,
-                book.time_table.item.book_name,
+                book.book_name,
                 self.request.GET.get("quarter", False),
             )
         return kwargs
@@ -234,7 +241,17 @@ class StudentsClass(ListView):
     context_object_name = "quarters"
 
     def get_queryset(self):
-        return super().get_queryset().filter(school=self.request.user.school)
+        return (
+            super()
+            .get_queryset()
+            .filter(
+                school=self.request.user.school,
+                start__range=(
+                    self.request.user.school.start_school_year,
+                    self.request.user.school.end_school_year,
+                ),
+            )
+        )
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")

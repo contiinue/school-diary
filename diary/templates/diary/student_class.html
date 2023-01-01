@@ -10,9 +10,9 @@
             <span class="span_quarters">Четверти: </span>
             {% for i in quarters %}
                 {% if i.id == request_quarter %}
-                <a class="btn btn-info" href="{% url 'student-class' slug_name='a' class_number=1 %}?quarter={{ i.pk }}">{{ i.name }}</a>
+                <a class="btn btn-info" href="{{ request.get_absolute_url }}?quarter={{ i.pk }}">{{ i.name }}</a>
                 {% else %}
-                    <a class="btn btn-dark" href="{% url 'student-class' slug_name='a' class_number=1 %}?quarter={{ i.pk }}">{{ i.name }}</a>
+                    <a class="btn btn-dark" href="{{ request.get_absolute_url }}?quarter={{ i.pk }}">{{ i.name }}</a>
                 {% endif %}
             {% endfor %}
         <table class="evaluations_table table" id="evaluations_table">
