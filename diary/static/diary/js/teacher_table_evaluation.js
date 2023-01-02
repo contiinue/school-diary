@@ -167,7 +167,7 @@ function getAverageEvaluation (array_evaluations) {
   let average_evaluation = document.createElement('th')
   const average = summ / len
 
-  average_evaluation.innerHTML = isNaN(average) ?  0 : average.toFixed(2)
+  average_evaluation.innerHTML = isNaN(average) ?  '0.00' : average.toFixed(2)
   average_evaluation.classList.add('text-center', 'average_evaluation', 'bg-light')
   return average_evaluation
 }

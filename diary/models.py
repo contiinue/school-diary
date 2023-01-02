@@ -1,9 +1,12 @@
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 
 from .fields import TokenAutorizateField
+
+from .utils import create_task
 
 
 class UserRegistrationMixin(models.Model):
@@ -24,16 +27,25 @@ class StudentRegistration(UserRegistrationMixin):
     learned_class = models.ForeignKey(
         "SchoolClass", on_delete=models.CASCADE, verbose_name="Выбор класса"
     )
+    is_alum = models.BooleanField(default=False)
 
 
 class TeacherRegistration(UserRegistrationMixin):
     item = models.ForeignKey(
-        "Books", on_delete=models.PROTECT, verbose_name="Выбор Предмета"
+        "SchoolSubjects", on_delete=models.PROTECT, verbose_name="Выбор Предмета"
     )
 
 
 class School(models.Model):
     name_school = models.CharField(max_length=127)
+    start_school_year = models.DateTimeField()
+    end_school_year = models.DateTimeField()
+    auto_switch_to_new_year = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.auto_switch_to_new_year:
+            create_task(self.name_school, self.end_school_year, self.pk)
 
     def __str__(self):
         return self.name_school
@@ -58,9 +70,9 @@ class MyUserManager(UserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
         main_field = (extra_fields.get("teacher"), extra_fields.get("student"))
         if any(main_field) is False or all(main_field) is True:
-            raise ValueError("Вы должны зарегистрировать ученика или учителя")
+            raise ValidationError("Вы должны зарегистрировать ученика или учителя")
         elif not extra_fields.get("invitation_token"):
-            raise ValueError("Пригласительный токен обязателен для регистрации")
+            raise ValidationError("Пригласительный токен обязателен для регистрации")
         return super(MyUserManager, self).create_user(
             username, email, password, **extra_fields
         )
@@ -92,7 +104,9 @@ class MyUser(AbstractUser):
 class HomeWorkModel(models.Model):
     """Teacher can set homework for student"""
 
-    item = models.ForeignKey("Books", on_delete=models.CASCADE, verbose_name="Предмет")
+    item = models.ForeignKey(
+        "SchoolSubjects", on_delete=models.CASCADE, verbose_name="Предмет"
+    )
     student_class = models.ForeignKey(
         "SchoolClass", on_delete=models.CASCADE, verbose_name="Класс"
     )
@@ -112,7 +126,7 @@ class SchoolClass(models.Model):
     number_class = models.IntegerField(null=True)
     name_class = models.CharField(max_length=15)
     slug = models.SlugField(max_length=15)
-    school = models.ForeignKey(School, on_delete=models.PROTECT)
+    school = models.ForeignKey(School, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ["number_class", "name_class"]
@@ -127,7 +141,7 @@ class SchoolClass(models.Model):
         return "{}{}".format(self.number_class, self.name_class)
 
 
-class Books(models.Model):
+class SchoolSubjects(models.Model):
     """School Books"""
 
     book_name = models.CharField(max_length=63)
@@ -156,28 +170,21 @@ class DayOfWeak(models.Model):
 
 
 class SchoolTimetable(models.Model):
-    item = models.ForeignKey(Books, on_delete=models.PROTECT)
+    item = models.ForeignKey(SchoolSubjects, on_delete=models.PROTECT)
     lesson_date = models.ManyToManyField(DayOfWeak)
     quarter = models.ForeignKey("Quarter", on_delete=models.CASCADE)
+    student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"Предмет: {self.item.book_name} - Четверть {self.quarter.name}"
 
 
 class BookWithClass(models.Model):
-    """base books for student class, it was done for flexibility"""
+    """base books for student class."""
 
-    time_table = models.ForeignKey(SchoolTimetable, on_delete=models.CASCADE)
+    items = models.ManyToManyField(SchoolSubjects)
     student_class = models.ForeignKey(SchoolClass, on_delete=models.CASCADE)
     school = models.ForeignKey(School, on_delete=models.PROTECT)
-
-    def __str__(self):
-        return "{} - {}{} четверть - {}".format(
-            self.time_table.item,
-            self.student_class.number_class,
-            self.student_class.name_class,
-            self.time_table.quarter.name,
-        )
 
 
 class Quarter(models.Model):
@@ -201,7 +208,7 @@ class Evaluation(models.Model):
         (5, 5),
     ]
     student = models.ForeignKey(MyUser, blank=True, on_delete=models.CASCADE)
-    item = models.ForeignKey(Books, on_delete=models.CASCADE, blank=True)
+    item = models.ForeignKey(SchoolSubjects, on_delete=models.CASCADE, blank=True)
     evaluation = models.IntegerField(choices=evaluation_choices)
     quarter = models.ForeignKey(Quarter, on_delete=models.CASCADE, blank=True)
     date = models.DateField()

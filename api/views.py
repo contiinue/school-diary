@@ -15,7 +15,12 @@ from api.serializers import (
     StudentRegistrationSerializer,
 )
 
-from diary.models import BookWithClass, Evaluation, MyUser, Quarter, StudentRegistration
+from diary.models import (
+    Evaluation,
+    MyUser,
+    StudentRegistration,
+    SchoolTimetable,
+)
 from services.get_evaluations_of_quarter import get_now_quarter
 
 
@@ -100,28 +105,21 @@ class SchoolTimetableApi(APIView):
 
     def get_queryset(self) -> list[str] | None:
         """Get timetable dates or None"""
-        quarter = (
-            Quarter.objects.get(pk=self.request.GET.get("quarter"))
-            if self.request.GET.get("quarter")
-            else get_now_quarter()
-        )
+        quarter = get_now_quarter(self.request.GET.get("quarter", False))
         try:
-            time_table = BookWithClass.objects.select_related(
-                "time_table", "student_class"
+            time_table = SchoolTimetable.objects.select_related(
+                "item", "student_class", "quarter"
             ).get(
                 student_class__number_class=self.kwargs.get("class_number"),
                 student_class__slug=self.kwargs.get("slug_name"),
-                time_table__item__book_name=self.request.user.teacher.item.book_name,
-                time_table__quarter__pk=quarter.pk,
-                school=self.request.user.school,
+                student_class__school=self.request.user.school,
+                item=self.request.user.teacher.item,
+                quarter=quarter,
             )
             return self.get_days_of_quarter(
                 quarter.start,
                 quarter.end,
-                [
-                    i.number_of_week_day()
-                    for i in time_table.time_table.lesson_date.all()
-                ],
+                [i.number_of_week_day() for i in time_table.lesson_date.all()],
             )
         except ObjectDoesNotExist:
             return None
