@@ -29,6 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
+BASE_URL = "http://127.0.0.1:8000"
 
 AUTH_USER_MODEL = "diary.MyUser"
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "debug_toolbar",
     "django_celery_beat",
+    "drf_yasg",
     "blog",
     "diary.apps.DiaryConfig",
     "rest_framework",
@@ -170,3 +172,12 @@ EMAIL_HOST = "smtp.mail.ru"
 EMAIL_PORT = 587
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD")
+
+
+# stripe
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+
+
+#
+PRICE_SCHOOL_MOTH = 500

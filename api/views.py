@@ -1,12 +1,20 @@
-from datetime import date, timedelta
+from datetime import date
 
+import stripe
+from django.db.models import F
+from django.http import HttpResponse
+from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.csrf import csrf_exempt
+from kombu.utils import json
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.status import HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_200_OK, HTTP_400_BAD_REQUEST
 from rest_framework.views import APIView
+from rest_framework.viewsets import ViewSet
 
+from api.create_payment_session import create_session
 from api.my_permissions import IsTeacherPermissions
 from api.serializers import (
     EvaluationSerializer,
@@ -20,6 +28,7 @@ from diary.models import (
     MyUser,
     StudentRegistration,
     SchoolTimetable,
+    School,
 )
 from services.get_evaluations_of_quarter import get_now_quarter
 
@@ -48,8 +57,8 @@ class ApiSetEvaluation(
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-    @action(url_path="set_evaluation", detail=False)
-    def post(self, request):
+    @action(methods=["post"], url_path="set_evaluation", detail=False)
+    def set_evaluation(self, request):
         serializer = self.serializer_class(data=self.get_data(request))
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -128,7 +137,37 @@ class SchoolTimetableApi(APIView):
     def get_days_of_quarter(start: date, end: date, week_day: list) -> list[str]:
         """Get dates between start and end"""
         total_days: int = (end - start).days + 1
-        all_days = [start + timedelta(days=day) for day in range(total_days)]
+        all_days = [start + timezone.timedelta(days=day) for day in range(total_days)]
         return [
             day.strftime("%Y-%m-%d") for day in all_days if day.weekday() in week_day
         ]
+
+
+class StripeApi(ViewSet):
+    @action(methods=["post"], detail=False)
+    def create_stripe_session(self, request):
+        session = create_session(int(request.data["month"]), request.user.school.pk)
+        return Response(data={"id": session.id}, status=303)
+
+    @action(methods=["post"], detail=False, url_path="update_subscribe")
+    def update_subscribe(self, request):
+        School.objects.get(pk=request.user.school.pk).update()
+
+    @csrf_exempt
+    @action(methods=["post"], detail=False)
+    def webhook(self, request):
+        payload = request.body
+        try:
+            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+        except ValueError:
+            return HttpResponse(status=HTTP_400_BAD_REQUEST)
+
+        if event.type == "payment_intent.succeeded":
+            school_id, count_month = event["data"]["object"]["metadata"].get(
+                "school_id", None
+            ), event["data"]["object"]["metadata"].get("count_month", None)
+            School.objects.filter(pk=school_id).update(
+                paid_to=F("paid_to") + timezone.timedelta(days=int(count_month) * 30)
+            )
+
+        return HttpResponse(status=HTTP_200_OK)

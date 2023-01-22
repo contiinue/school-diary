@@ -18,11 +18,13 @@ from services.get_evaluations_of_quarter import (
     get_now_quarter,
 )
 
+
 from .forms import (
     MyUserForm,
     NewHomeWorkForm,
     StudentRegistrationForm,
     TeacherRegistrationForm,
+    PaymentForm,
 )
 from .models import (
     BookWithClass,
@@ -33,6 +35,7 @@ from .models import (
     TokenRegistration,
 )
 from .utils import request_student, request_teacher
+from schooldiary.settings import STRIPE_PUBLIC_KEY
 
 
 class HomePage(TemplateView):
@@ -261,3 +264,24 @@ def download_evaluations(request, class_number, slug_name):
     response = HttpResponse(file_data, content_type="application/vnd.ms-excel")
     response["Content-Disposition"] = 'attachment; filename="foo.xls"'
     return response
+
+
+class SchoolPayment(FormView):
+    template_name = "diary/schoolPayment.html"
+    form_class = PaymentForm
+
+    def get(self, request, **kwargs):
+        return super().get(request, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        kwargs["request"] = self.request
+        kwargs["STRIPE_PUBLIC_KEY"] = STRIPE_PUBLIC_KEY
+        return kwargs
+
+
+class SuccessPyment(TemplateView):
+    template_name = "diary/success_payment.html"
+
+
+class CanselPyment(TemplateView):
+    template_name = "diary/cancel_payment.html"

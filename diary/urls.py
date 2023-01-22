@@ -9,6 +9,9 @@ from diary.views import (
     HomeWork,
     StudentsClass,
     download_evaluations,
+    SchoolPayment,
+    SuccessPyment,
+    CanselPyment,
 )
 
 urlpatterns = [
@@ -29,4 +32,7 @@ urlpatterns = [
         download_evaluations,
         name="download-evaluations",
     ),
+    path("payment/", SchoolPayment.as_view(), name="school-payment"),
+    path("success-payment/", SuccessPyment.as_view(), name="success-payment"),
+    path("cansel-payment/", CanselPyment.as_view(), name="cansel-payment"),
 ]
