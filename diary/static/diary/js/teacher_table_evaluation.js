@@ -240,4 +240,3 @@ async function getTableOfEvaliations() {
 
 
 getTableOfEvaliations()
-

@@ -1,0 +1,12 @@
+{% extends 'diary/base.html' %}
+
+{% block title %}Студент: {{ student.username}}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="text-center">
+        <h1>Спасибо за оплату!</h1>
+        <a type="button" href="{% url 'home' %}">Вернуться на главную страницу</a>
+    </div>
+</div>
+{% endblock %}

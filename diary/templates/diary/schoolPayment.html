@@ -1,0 +1,66 @@
+{% extends 'diary/base.html' %}
+{% load static %}
+{% block title %}Оплата{% endblock %}
+
+{% block content %}
+<script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+<script src="https://js.stripe.com/v3/"></script>
+
+<div class="container">
+  <section>
+      <div class="product">
+        <div class="description">
+          <h2>Оплата услуг платформы</h2>
+          <div class="payment_data text-center p-2">
+            <label for="">Кол-во месяцев</label>
+            <input type="number" id="count_month" value="1">
+            <button type="button" id="buy-button">Оплатить</button>
+          </div>
+        </div>
+      </div>
+    {% csrf_token %}
+  </section>
+</div>
+
+<script type="text/javascript">
+  const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  const stripe = Stripe("{{ STRIPE_PUBLIC_KEY }}");
+
+  const checkoutButton = document.getElementById("buy-button");
+  checkoutButton.addEventListener("click", getSessionToRedirect)
+
+  function get_month () {
+    return document.getElementById('count_month').value
+  }
+
+  async function getSessionToRedirect() {
+      const month = get_month()
+      if (Number(month) === 0) {
+        alert('Выберите кол-во месяцев для оплаты')
+        return
+      } 
+
+      const response = await fetch(`{% url 'create-session-create-stripe-session' %}`, {
+        method: "POST",
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({month: month})
+      })
+      const session = await response.json()
+      const result =  await stripe.redirectToCheckout({ sessionId: session.id });
+
+      if (result.error) {
+        alert(result.error.message)
+      }
+  }
+
+</script>
+
+<!--<script src="{% static 'diary/js/stripe.js' %}"></script>-->
+{% endblock %}
+
+{% block header %}
+
+{% endblock %}

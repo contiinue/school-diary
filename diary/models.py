@@ -41,6 +41,7 @@ class School(models.Model):
     start_school_year = models.DateTimeField()
     end_school_year = models.DateTimeField()
     auto_switch_to_new_year = models.BooleanField(default=True)
+    paid_to = models.DateField()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

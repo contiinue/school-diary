@@ -104,3 +104,7 @@ class SetEvaluationForm(forms.ModelForm):
     class Meta:
         model = Evaluation
         fields = ["student", "item", "quarter", "evaluation"]
+
+
+class PaymentForm(forms.Form):
+    count_month = forms.IntegerField(max_value=24)
