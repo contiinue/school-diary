@@ -45,8 +45,8 @@ class School(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.auto_switch_to_new_year:
-            create_task(self.name_school, self.end_school_year, self.pk)
+        # if self.auto_switch_to_new_year:
+        #     create_task(self.name_school, self.end_school_year, self.pk)
 
     def __str__(self):
         return self.name_school

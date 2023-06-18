@@ -31,22 +31,18 @@
 
   <div class="student-eval">
     <table class="table">
-      <thead>
         <tr>
           <th scope="col">#</th>
           <th scope="col">Оценки</th>
           <th scope="col" >Средний балл</th>
         </tr>
-      </thead>
-      </thead>
         {% for i in books.items %}
           <tr>
-            <td class="row">{{ i.0 }}</td>
+            <td class="">{{ i.0 }}</td>
             <td>{{ i.1 | to_evaluation_list | join:', '}}</td>
             <td>{{ i.1 | to_evaluation_list | middle_eval }}</td>
           </tr>
         {% endfor %}
-      </thead>
     </table>
   </div>
 </div>
